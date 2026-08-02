@@ -1,0 +1,43 @@
+\section{Metodología}
+\subsection{El terreno y el MDP}
+Usamos un recorte de unos $3\times3$~km del modelo digital de elevación (Digital
+Elevation Model, DEM) Copernicus GLO-30, bajado de AWS Open Data. La
+Fig.~\ref{fig:terreno} muestra la elevación y la pendiente. El MDP es:
+\begin{itemize}
+  \item \textbf{Estados:} el agente está en una celda de la malla $108\times108$.
+  \item \textbf{Acciones:} arriba, abajo, izquierda, derecha.
+  \item \textbf{Transición:} determinística, u opcionalmente estocástica (el
+        resbalón de la Sec.~\ref{sec:estoc}).
+  \item \textbf{Recompensa:} un costo por paso que crece con la pendiente, un
+        castigo si choca contra un obstáculo, y un premio al llegar a la meta.
+\end{itemize}
+
+\subsection{Observación local}
+El agente no ve el mapa completo. Ve un parche de $9\times9$ celdas de pendiente
+centrado en él (81 valores) más el vector $(\Delta \text{fila}, \Delta
+\text{columna})$ hacia la meta, en total 83 números (Fig.~\ref{fig:obs}). Ese
+tamaño no depende del mapa. Y como terrenos parecidos dan observaciones parecidas,
+la red puede generalizar. Una tabla no puede: necesitaría una entrada por cada par
+(posición, meta), del orden de $10^8$ valores.
+
+\subsection{Meta fija con inicio aleatorio}
+La meta es siempre la misma celda; el inicio cambia en cada episodio. Con una sola
+meta, la función de valor es un campo suave y el entrenamiento se mantiene estable.
+El inicio aleatorio hace el problema no trivial: el agente aprende a llegar desde
+cualquier celda, no una ruta memorizada.
+
+\subsection{Reward shaping de progreso}
+Con la meta lejos en un mapa grande, el agente casi nunca la encuentra por azar y el
+premio nunca aparece. Le damos un bono por acercarse. Primero probamos el
+\emph{shaping} potencial $\Phi(s)=-k\cdot d(s,\text{meta})$, y falló
+(Sec.~\ref{sec:disc}). Lo cambiamos por \textbf{shaping de progreso}, $r
+\mathrel{+}= k\,[\,d(s,\text{meta}) - d(s',\text{meta})\,]$, que suma cero en
+cualquier ciclo y no crea la trampa del potencial.
+
+\subsection{Arquitectura e hiperparámetros}
+La red (tanto la de $Q$ como la de política) es un perceptrón de $83 \to 128 \to 128
+\to 4$, unos 27~mil parámetros. Usamos $\gamma=0.99$, optimizador Adam, pérdida de
+Huber y recorte de gradiente en DQN. La exploración es $\varepsilon$-greedy
+decreciente. Un \emph{curriculum} hace que los inicios arranquen cerca de la meta y
+se alejen con el entrenamiento. Fijamos la semilla en todos los experimentos para
+que sean reproducibles.

@@ -1,0 +1,52 @@
+\section{Marco teórico}
+\subsection{MDP y Q-learning}
+Un MDP se define por estados $s$, acciones $a$, una transición $P(s'|s,a)$ y una
+recompensa $r(s,a)$. El objetivo es una política $\pi$ que maximice el retorno
+descontado $\sum_t \gamma^t r_t$. Q-learning aprende la función de valor de acción
+$Q(s,a)$ con la actualización por diferencia temporal (Temporal Difference, TD):
+\begin{equation}
+Q(s,a) \leftarrow Q(s,a) + \alpha\big[r + \gamma \max_{a'} Q(s',a') - Q(s,a)\big].
+\end{equation}
+La política greedy es $\pi(s)=\arg\max_a Q(s,a)$.
+
+\subsection{Deep Q-Network (DQN)}
+Cuando hay muchos estados, la tabla $Q$ no cabe. DQN \cite{mnih2015} la reemplaza
+por una red neuronal $Q(s,a;\theta)$ y minimiza la pérdida
+\begin{equation}
+\mathcal{L}(\theta) = \big(r + \gamma \max_{a'} Q(s',a';\theta^-) - Q(s,a;\theta)\big)^2,
+\end{equation}
+por descenso de gradiente. Entrenar así, sin más, es inestable. DQN lo estabiliza
+con dos mecanismos de la clase~5.1:
+\begin{itemize}
+  \item \textbf{Reproducción de Experiencias} (experience replay): guarda las
+        transiciones y entrena con mini-lotes al azar, para romper la correlación
+        entre pasos seguidos.
+  \item \textbf{Objetivos-Q Fijados} (red objetivo $\theta^-$): una copia congelada
+        de la red calcula el objetivo, y se sincroniza cada cierto número de pasos.
+        Así el agente no persigue un blanco que se mueve con cada update.
+\end{itemize}
+
+\subsection{Double DQN}
+El operador $\max$ del objetivo tiende a sobreestimar los valores, porque siempre
+elige el ruido positivo. Double DQN \cite{vanhasselt2016} separa quién elige la
+acción de quién la evalúa:
+\begin{equation}
+y = r + \gamma\, Q\big(s',\ \arg\max_{a'} Q(s',a';\theta);\ \theta^-\big),
+\end{equation}
+lo que reduce ese sesgo.
+
+\subsection{REINFORCE (gradiente de política)}
+REINFORCE \cite{williams1992} no aprende valores $Q$. Aprende directamente una
+política estocástica $\pi(a|s;\theta)$ y ajusta sus parámetros hacia donde crece el
+retorno:
+\begin{equation}
+\nabla_\theta J \approx \sum_t \nabla_\theta \log \pi(a_t|s_t;\theta)\, G_t,
+\end{equation}
+donde $G_t$ es el retorno descontado desde el paso $t$. Restar una línea base a
+$G_t$ baja la varianza, que es su punto débil.
+
+\subsection{Reward shaping}
+Cuando la recompensa es dispersa, un bono denso ayuda a aprender. El \emph{shaping}
+potencial \cite{ng1999} promete no cambiar la política óptima: $F = \gamma\,\Phi(s')
+- \Phi(s)$. En nuestro problema, con $\gamma<1$ y rutas largas, esa forma trae un
+efecto que no queríamos (Sec.~\ref{sec:disc}).

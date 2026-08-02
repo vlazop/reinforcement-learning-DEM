@@ -1,0 +1,26 @@
+\section{Introducción}
+Cruzar un terreno gastando el menor esfuerzo es un problema viejo. Si conoces el
+mapa completo, lo resuelves exacto con Dijkstra. Pero un agente autónomo casi nunca
+tiene el mapa entero: ve su alrededor y decide con información parcial. El
+Aprendizaje por Refuerzo (Reinforcement Learning, RL) sirve justo para ese caso:
+aprende una política por prueba y error.
+
+En el trabajo parcial modelamos el terreno como un Proceso de Decisión de Markov
+(Markov Decision Process, MDP) y lo resolvimos con Q-learning tabular. La malla era
+reducida ($54\times54$), y el inicio y la meta eran fijos. Ese enfoque guarda una
+tabla de valores y no sirve para situaciones nuevas: memoriza, no generaliza.
+
+En este trabajo subimos la dificultad y usamos Aprendizaje por Refuerzo Profundo
+(Deep Reinforcement Learning, DRL). Aportamos tres cosas:
+\begin{itemize}
+  \item Un entorno más difícil: resolución completa ($108\times108$), observación
+        local (un parche $9\times9$ más el vector a la meta) e inicio aleatorio.
+        Esto obliga al agente a generalizar y justifica usar una red neuronal en
+        lugar de una tabla.
+  \item Una comparación de dos familias de RL en el mismo terreno: basada en valor
+        (DQN, Double DQN) y basada en política (REINFORCE), más la línea base
+        exacta de Dijkstra.
+  \item Dos problemas de diseño que encontramos y resolvimos, con datos que lo
+        respaldan: la trampa del \emph{shaping} potencial y la divergencia de $Q$
+        con metas aleatorias.
+\end{itemize}

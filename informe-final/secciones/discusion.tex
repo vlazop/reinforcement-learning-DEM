@@ -1,0 +1,22 @@
+\section{Discusión}
+\label{sec:disc}
+\subsection{La trampa del shaping potencial}
+El \emph{shaping} potencial con $\gamma<1$ deja un residuo positivo por estar lejos
+de la meta. Sobre un ciclo entre dos celdas, la recompensa de \emph{shaping}
+telescopea a $k(1-\gamma)(d_X + d_Y) > 0$. A distancias grandes eso significa que
+oscilar lejos de la meta (ir y volver, \emph{ping-pong}) da recompensa positiva, así
+que la política greedy se queda atrapada yendo y viniendo entre dos celdas. El
+\emph{shaping} de progreso quita ese residuo y el problema desaparece. Es un caso
+donde una técnica correcta en teoría, la invariancia de la política óptima, falla en
+la práctica por cómo interactúa con el descuento.
+
+\subsection{Divergencia y la elección de meta fija}
+Con metas aleatorias, la sobreestimación del $\max$ se realimenta con el
+\emph{bootstrapping} y los valores $Q$ se disparan. Double DQN retrasa el efecto,
+pero en nuestro caso no lo evita. La meta fija da un campo de valor único y estable.
+No es una limitación accidental, es una decisión de alcance con motivo.
+
+\subsection{Limitación: política single-goal}
+Nuestra política generaliza sobre el inicio, pero está entrenada para una meta fija.
+Si se cambia la meta, hay que reentrenar. Llevarla a metas cualesquiera pide técnicas
+más robustas contra la divergencia, y lo dejamos como trabajo futuro.
