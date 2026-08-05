@@ -1,0 +1,61 @@
+\section{Experimentos y resultados}
+\subsection{Configuración}
+El test mide dos cosas de la política greedy: cuántas veces llega a la meta y en
+cuántos pasos, sobre 20 inicios fijos sorteados con una semilla distinta a la del
+entrenamiento. Es decir, inicios que el agente nunca vio. Además comparamos el costo
+de la ruta del agente contra el óptimo exacto de Dijkstra.
+
+\subsection{DQN con meta fija}
+La Fig.~\ref{fig:curva} muestra la curva de aprendizaje. El agente llega al
+\textbf{100\,\% de éxito} (20 de 20 inicios) y se queda estable. La
+Fig.~\ref{fig:rutas} pone cuatro de sus rutas al lado de las de Dijkstra. Sobre los
+20 inicios, la brecha media de costo es de solo \textbf{3,3\,\%}, aunque el agente
+nunca vio el mapa completo, solo parches locales.
+
+\subsection{Ablaciones}
+Repetimos el estudio de ablación de Liu \& Zou \cite{liu2018} en nuestro terreno:
+apagamos cada mecanismo de DQN y medimos qué pasa (Tabla~\ref{tab:ablacion},
+Fig.~\ref{fig:ablacion}). El resultado es claro. Sin la red objetivo ($\theta^-$) el
+agente no aprende nada (0\,\%), y sin la Reproducción de Experiencias tampoco
+(0\,\%). Los dos componentes son necesarios. Double DQN queda a la par del DQN
+completo (100\,\%).
+
+\begin{table}[t]
+\caption{Ablaciones: tasa de éxito en el test}
+\label{tab:ablacion}
+\centering
+\begin{tabular}{lc}
+\toprule
+Configuración & Éxito \\
+\midrule
+DQN completo        & 100\,\% \\
+sin \emph{replay}   & 0\,\% \\
+sin red objetivo ($\theta^-$) & 0\,\% \\
+Double DQN          & 100\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Transición estocástica}
+\label{sec:estoc}
+Volvemos el mundo estocástico con un resbalón: con una probabilidad que crece con la
+pendiente, la acción del agente se cambia por una al azar. La Fig.~\ref{fig:estoc}
+compara terreno determinista y estocástico. Los dos llegan al 100\,\% de éxito; el
+estocástico solo necesita unos pasos más (102 frente a 96). La política aguanta el
+azar, algo que Dijkstra no modela porque supone que el mundo es perfecto.
+
+\subsection{Valor vs política: DQN y REINFORCE}
+La Fig.~\ref{fig:reinforce} compara DQN (basado en valor) con REINFORCE (basado en
+política) en el mismo terreno. Los dos llegan alto: DQN 100\,\% y REINFORCE 95\,\%.
+La diferencia está en cómo. DQN converge suave y estable, gracias a la Reproducción
+de Experiencias y la red objetivo. REINFORCE es más simple pero tiene mucha más
+varianza: la recompensa por episodio salta de un valor a otro. Es el comportamiento
+típico de cada familia.
+
+\subsection{Divergencia con meta aleatoria}
+La Fig.~\ref{fig:diverge} muestra qué pasa si la meta también es aleatoria (problema
+\emph{goal-conditioned}). La magnitud media de los valores $Q$ se mantiene baja hasta
+cerca del episodio 1000 y luego \textbf{explota}: pasa de $\sim 1$ a más de $2400$.
+Mientras tanto la tasa de éxito nunca sube de 10\,\%. El agente no aprende una
+política que se sostenga, y los valores divergen por la sobreestimación del operador
+$\max$. Esta es la razón por la que elegimos meta fija.

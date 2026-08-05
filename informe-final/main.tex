@@ -1,0 +1,86 @@
+%% ===========================================================================
+%%  Informe final - MIA-204 Aprendizaje por Refuerzo
+%%  Formato IEEE conference (IEEEtran). Compilar en Overleaf con pdfLaTeX.
+%%
+%%  Archivo maestro: el contenido está dividido en secciones/*.tex.
+%%  Las figuras (PNG) están en figuras/ y se listan en secciones/figuras.tex.
+%%  Para regenerarlas: cd ../dqn && python gen_figuras_informe.py
+%% ===========================================================================
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{hyperref}
+
+\begin{document}
+
+\title{Navegación de costo mínimo sobre terreno real\\
+mediante Aprendizaje por Refuerzo Profundo}
+
+\author{
+\IEEEauthorblockN{Integrante 1, Integrante 2, Integrante 3,\\ Integrante 4, Integrante 5}
+\IEEEauthorblockA{\textit{Maestría en Inteligencia Artificial (MIA-204)}\\
+\textit{Aprendizaje por Refuerzo}\\
+Arequipa, Perú}
+}
+
+\maketitle
+
+% --------------------------------------------------------------------------
+\begin{abstract}
+Un agente aprende a cruzar un terreno real (las faldas del volcán Misti, en
+Arequipa) gastando el menor esfuerzo por pendiente. En el trabajo parcial usamos
+Q-learning tabular con una meta fija. Aquí subimos la dificultad y aplicamos
+Aprendizaje por Refuerzo Profundo. El mapa va a resolución completa
+($108\times108$ celdas de 30~m), el agente solo ve un parche $9\times9$ de
+pendiente a su alrededor más un vector hacia la meta, y el punto de partida cambia
+en cada episodio. La función de valor la aproxima una red neuronal (Deep Q-Network,
+DQN). Comparamos dos familias de métodos, los basados en valor (DQN y Double DQN) y
+los basados en política (REINFORCE), y medimos contra el óptimo exacto de Dijkstra.
+El agente llega a la meta desde puntos de partida que nunca vio en entrenamiento,
+con una ruta cercana al óptimo, y sigue funcionando cuando el mundo se vuelve
+estocástico. Reportamos también dos problemas de diseño y cómo los resolvimos: el
+\emph{reward shaping} potencial de libro creaba una trampa que impedía aprender, y
+lo cambiamos por \emph{shaping} de progreso; y con metas totalmente aleatorias los
+valores $Q$ divergen, lo que explica por qué elegimos meta fija.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Aprendizaje por Refuerzo Profundo, Deep Q-Network, REINFORCE, navegación,
+reward shaping, modelo digital de elevación.
+\end{IEEEkeywords}
+
+% --------------------------------------------------------------------------
+\input{secciones/introduccion}
+\input{secciones/marco-teorico}
+\input{secciones/metodologia}
+\input{secciones/experimentos}
+\input{secciones/discusion}
+\input{secciones/conclusiones}
+
+% --------------------------------------------------------------------------
+\begin{thebibliography}{1}
+\bibitem{mnih2015} V. Mnih \emph{et al.}, ``Human-level control through deep
+reinforcement learning,'' \emph{Nature}, vol.~518, pp.~529--533, 2015.
+\bibitem{vanhasselt2016} H. van Hasselt, A. Guez, and D. Silver, ``Deep
+reinforcement learning with double Q-learning,'' in \emph{AAAI}, 2016.
+\bibitem{liu2018} R. Liu and J. Zou, ``The effects of memory replay in
+reinforcement learning,'' in \emph{Allerton Conf.}, IEEE, 2018.
+\bibitem{ng1999} A. Ng, D. Harada, and S. Russell, ``Policy invariance under reward
+transformations: theory and application to reward shaping,'' in \emph{ICML}, 1999.
+\bibitem{williams1992} R. J. Williams, ``Simple statistical gradient-following
+algorithms for connectionist reinforcement learning,'' \emph{Machine Learning},
+vol.~8, pp.~229--256, 1992.
+\bibitem{sutton2018} R. S. Sutton and A. G. Barto, \emph{Reinforcement Learning: An
+Introduction}, 2nd ed. MIT Press, 2018.
+\end{thebibliography}
+
+% --------------------------------------------------------------------------
+\input{secciones/figuras}
+
+\end{document}

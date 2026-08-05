@@ -1,0 +1,31 @@
+Mapa 108x108 | meta fija (np.int64(104), np.int64(104)) | obs 83
+[figura] 01_terreno.png
+[figura] 02_observacion.png
+
+== DQN meta fija (principal) ==
+[figura] 03_curva_dqn.png
+[figura] 04_rutas_dijkstra.png
+DQN final: exito 100%, pasos 96 | brecha vs Dijkstra 7.1% (20/20 llegaron)
+
+== Ablaciones ==
+  DQN completo  : exito final 100%
+  sin replay    : exito final 85%
+  sin theta-    : exito final 0%
+  Double DQN    : exito final 100%
+[figura] 05_ablaciones.png
+
+== Determinista vs estocastico ==
+  determinista (0.0)    : exito 95%, pasos 113
+  estocastico (0.25)    : exito 100%, pasos 103
+[figura] 06_estocastico.png
+
+== DQN (valor) vs REINFORCE (politica) ==
+[figura] 07_dqn_vs_reinforce.png
+  DQN       final: exito 100%, pasos 96
+  REINFORCE final: exito 95%, pasos 113
+
+== Meta aleatoria: divergencia |Q| ==
+[figura] 08_divergencia.png
+  |Q| final: 9.2 (empezo en 0.7)  |  exito final: 5%
+
+== LISTO: todas las figuras generadas ==

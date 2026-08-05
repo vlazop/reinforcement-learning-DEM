@@ -1,0 +1,9 @@
+\section{Conclusiones y trabajo futuro}
+Construimos un agente de Aprendizaje por Refuerzo Profundo que navega terreno real
+con observación local e inicio aleatorio, y aproxima la función de valor con una red
+neuronal. El agente llega a la meta desde inicios que nunca vio, con una ruta
+cercana al óptimo de Dijkstra, y aguanta las transiciones estocásticas. Comparamos
+las familias de valor y de política, y reportamos dos problemas de diseño con datos
+que los respaldan. Para el futuro proponemos tres líneas: políticas condicionadas a
+la meta (\emph{goal-conditioned}) con Hindsight Experience Replay o replay
+priorizado; mapas más grandes, como el volcán completo; y métodos actor-critic.
