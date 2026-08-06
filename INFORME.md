@@ -177,7 +177,7 @@ Lectura de los resultados:
 ## 8. Reproducibilidad
 
 ```bash
-pip install numpy matplotlib rasterio
+pip install -r requirements.txt
 python main.py     # entrena y genera las 4 figuras en results/ (~10 s)
 ```
 

@@ -9,7 +9,7 @@ ruta al agente: la descubre solo.
 ## Cómo correr
 
 ```bash
-pip install numpy matplotlib rasterio
+pip install -r requirements.txt
 python main.py          # entrena y genera las figuras (~10 s)
 ```
 
