@@ -37,3 +37,19 @@ env/
 # Data / generated outputs (keep data/dem.tif and results/ PNGs)
 # Uncomment below if you want to ignore generated figures:
 # results/*.png
+HALLAZGOS_INFORME.md
+RESUMEN_ALGORITMO.md
+__pycache__/dijkstra.cpython-312.pyc
+conceptos-preguntas.md
+dijkstra.py
+notas-exposicion.md
+notes/
+web-learning/
+web/
+__pycache__/entorno.cpython-310.pyc
+__pycache__/plots.cpython-312.pyc
+dqn/__pycache__/datos.cpython-312.pyc
+INFORME.md
+__pycache__/
+dqn/__pycache__/
+.DS_Store

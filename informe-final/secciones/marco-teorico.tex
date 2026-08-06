@@ -1,4 +1,5 @@
 \section{Marco teórico}
+\label{sec:teoria}
 \subsection{MDP y Q-learning}
 Un MDP se define por estados $s$, acciones $a$, una transición $P(s'|s,a)$ y una
 recompensa $r(s,a)$. El objetivo es una política $\pi$ que maximice el retorno
@@ -32,6 +33,7 @@ elige el ruido positivo. Double DQN \cite{vanhasselt2016} separa quién elige la
 acción de quién la evalúa:
 \begin{equation}
 y = r + \gamma\, Q\big(s',\ \arg\max_{a'} Q(s',a';\theta);\ \theta^-\big),
+\label{eq:ddqn}
 \end{equation}
 lo que reduce ese sesgo.
 
@@ -42,8 +44,10 @@ retorno:
 \begin{equation}
 \nabla_\theta J \approx \sum_t \nabla_\theta \log \pi(a_t|s_t;\theta)\, G_t,
 \end{equation}
-donde $G_t$ es el retorno descontado desde el paso $t$. Restar una línea base a
-$G_t$ baja la varianza, que es su punto débil.
+donde $G_t$ es el retorno descontado desde el paso $t$. Su punto débil es la
+varianza. Para bajarla usamos una línea base simple: dentro de cada episodio
+normalizamos los retornos, les restamos la media y los dividimos por su desviación
+estándar \cite{sutton2018}.
 
 \subsection{Reward shaping}
 Cuando la recompensa es dispersa, un bono denso ayuda a aprender. El \emph{shaping}

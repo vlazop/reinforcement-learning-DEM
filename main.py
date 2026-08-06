@@ -12,6 +12,7 @@ Uso:
 import time
 
 import plots
+from dijkstra import ruta_optima
 from entorno import TerrenoEnv
 from qlearning import entrenar, politica_desde_Q
 
@@ -62,9 +63,18 @@ def main():
     print(f"[Q-learning] {EPISODIOS} episodios ({time.time()-t:.1f} s) | "
           f"{estado}: {len(camino)} pasos, costo {costo:.1f}")
 
-    # 3. Figuras.
+    # 3. Vara de medir: Dijkstra calcula el óptimo exacto usando el mapa
+    #    completo (cosa que el agente nunca vio). La brecha entre ambos
+    #    costos dice qué tan bien aprendió el agente a ciegas.
+    camino_dij, costo_dij = ruta_optima(env)
+    brecha = 100 * (costo - costo_dij) / costo_dij
+    print(f"[Dijkstra]   óptimo exacto: {len(camino_dij)} pasos, "
+          f"costo {costo_dij:.1f} | brecha de Q-learning: {brecha:.1f}%")
+
+    # 4. Figuras.
     plots.mapa_politica(env, politica, camino)
     plots.curva_aprendizaje(recompensas)
+    plots.comparacion_dijkstra(env, camino, costo, camino_dij, costo_dij)
 
     print(f"\nListo. Figuras en results/ ({time.time()-inicio_total:.0f} s en total)")
 

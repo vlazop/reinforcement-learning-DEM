@@ -5,9 +5,10 @@ Informe del trabajo final en LaTeX, formato IEEE conference (clase `IEEEtran`).
 ## Archivos
 
 - `main.tex` — archivo maestro: preámbulo, título, resumen y `\input{}` de las secciones.
-- `secciones/` — una sección por archivo:
-  - `introduccion.tex`, `marco-teorico.tex`, `metodologia.tex`,
-    `experimentos.tex`, `discusion.tex`, `conclusiones.tex`, `figuras.tex`.
+- `secciones/` — una sección por archivo, en el orden en que se compilan:
+  - `introduccion.tex`, `trabajos-relacionados.tex`, `marco-teorico.tex`,
+    `metodologia.tex`, `implementacion.tex`, `experimentos.tex`, `discusion.tex`,
+    `conclusiones.tex`, `figuras.tex`.
 - `figuras/` — las 8 figuras (PNG) que usa el informe.
 
 Al compilar en Overleaf sube **toda** la carpeta `informe-final/` (con `secciones/` y
@@ -39,8 +40,15 @@ guardar imagen) para tener las versiones con más episodios.
 ## Pendientes antes de entregar
 
 - [ ] Poner los nombres de los 5 integrantes en `main.tex` (bloque `\author`).
-- [ ] Rellenar los números marcados con `% TODO` (están en `figuras/numeros.txt`).
+- [ ] **Regenerar las figuras.** Los PNG actuales salieron de `gen_figuras_informe.py`
+      con menos episodios que los notebooks, y tres de ellos contradicen el texto:
+      `05_ablaciones.png` muestra 85 % sin *replay* (el texto dice 0 %),
+      `06_estocastico.png` muestra 113 vs 103 pasos (el texto dice 96 vs 102) y
+      `08_divergencia.png` muestra |Q| = 9,2 (el texto dice más de 2400).
+      Solución: subir `EP_AB` a 1500, `EP_STO` a 1500, `EP_PG` a 1500 y `EP_DIV` a 1600
+      en `gen_figuras_informe.py`, o exportar las figuras desde los notebooks de Colab.
 - [ ] Confirmar con la profesora: ¿español o inglés? ¿límite de páginas?
+      (el PDF actual tiene 7 páginas).
 - [ ] Revisar que todas las figuras se vean bien en el PDF compilado.
 
 ## Fuente de los contenidos

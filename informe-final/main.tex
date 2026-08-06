@@ -14,8 +14,15 @@
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 \usepackage{url}
 \usepackage{hyperref}
+
+% babel-spanish nombra las tablas "Cuadro" y el flotante de algoritmo en inglés.
+% El \addto es necesario: babel fija los nombres al empezar el documento.
+\addto\captionsspanish{\renewcommand{\tablename}{Tabla}}
+\floatname{algorithm}{Algoritmo}
 
 \begin{document}
 
@@ -57,14 +64,18 @@ reward shaping, modelo digital de elevación.
 
 % --------------------------------------------------------------------------
 \input{secciones/introduccion}
+\input{secciones/trabajos-relacionados}
 \input{secciones/marco-teorico}
 \input{secciones/metodologia}
+\input{secciones/implementacion}
 \input{secciones/experimentos}
 \input{secciones/discusion}
 \input{secciones/conclusiones}
 
 % --------------------------------------------------------------------------
-\begin{thebibliography}{1}
+\begin{thebibliography}{11}
+\bibitem{dijkstra1959} E. W. Dijkstra, ``A note on two problems in connexion with
+graphs,'' \emph{Numerische Mathematik}, vol.~1, pp.~269--271, 1959.
 \bibitem{mnih2015} V. Mnih \emph{et al.}, ``Human-level control through deep
 reinforcement learning,'' \emph{Nature}, vol.~518, pp.~529--533, 2015.
 \bibitem{vanhasselt2016} H. van Hasselt, A. Guez, and D. Silver, ``Deep
@@ -76,8 +87,16 @@ transformations: theory and application to reward shaping,'' in \emph{ICML}, 199
 \bibitem{williams1992} R. J. Williams, ``Simple statistical gradient-following
 algorithms for connectionist reinforcement learning,'' \emph{Machine Learning},
 vol.~8, pp.~229--256, 1992.
+\bibitem{mnih2016} V. Mnih \emph{et al.}, ``Asynchronous methods for deep
+reinforcement learning,'' in \emph{ICML}, 2016.
 \bibitem{sutton2018} R. S. Sutton and A. G. Barto, \emph{Reinforcement Learning: An
 Introduction}, 2nd ed. MIT Press, 2018.
+\bibitem{schaul2015} T. Schaul, D. Horgan, K. Gregor, and D. Silver, ``Universal
+value function approximators,'' in \emph{ICML}, 2015.
+\bibitem{schaul2016} T. Schaul, J. Quan, I. Antonoglou, and D. Silver, ``Prioritized
+experience replay,'' in \emph{ICLR}, 2016.
+\bibitem{andrychowicz2017} M. Andrychowicz \emph{et al.}, ``Hindsight experience
+replay,'' in \emph{NeurIPS}, 2017.
 \end{thebibliography}
 
 % --------------------------------------------------------------------------

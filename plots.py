@@ -5,6 +5,7 @@ Gráficos del proyecto (todos se guardan como PNG en results/):
   01_entorno.png            el problema: terreno real, costo y obstáculos
   02_politica_qlearning.png la política aprendida (flechas) + ruta A→B
   03_curva_aprendizaje.png  recompensa por episodio (¿el agente mejora?)
+  04_comparacion_dijkstra.png ruta aprendida vs óptimo exacto (Dijkstra)
 """
 
 import matplotlib.pyplot as plt
@@ -158,6 +159,32 @@ def mapa_politica(env, politica, camino, ruta="results/02_politica_qlearning.png
     ax.plot(xs, ys, color=COLOR_RUTA, lw=2.4, zorder=4, solid_capstyle="round")
 
     ax.set_title("Política aprendida por Q-learning (flechas) y ruta A→B")
+    fig.tight_layout()
+    fig.savefig(ruta, bbox_inches="tight")
+    plt.close(fig)
+
+
+def comparacion_dijkstra(env, camino_rl, costo_rl, camino_dij, costo_dij,
+                         ruta="results/04_comparacion_dijkstra.png"):
+    """
+    Figura 4: la ruta aprendida por Q-learning (sin conocer el mapa)
+    junto al óptimo exacto de Dijkstra (con el mapa completo). La
+    cercanía entre ambas es la validación del aprendizaje.
+    """
+    fig, ax = plt.subplots(figsize=(6.4, 6.4))
+    _fondo_terreno(ax, env)
+
+    ys, xs = zip(*camino_dij)
+    ax.plot(xs, ys, color="#0072B2", lw=3.2, zorder=3, solid_capstyle="round",
+            label=f"Dijkstra (óptimo): costo {costo_dij:.1f}")
+    ys, xs = zip(*camino_rl)
+    ax.plot(xs, ys, color=COLOR_RUTA, lw=2.0, zorder=4, solid_capstyle="round",
+            label=f"Q-learning: costo {costo_rl:.1f}")
+
+    brecha = 100 * (costo_rl - costo_dij) / costo_dij
+    ax.set_title("Ruta aprendida vs. óptimo exacto "
+                 f"(brecha: {brecha:.1f}%)")
+    ax.legend(loc="lower left", fontsize=8, framealpha=0.9)
     fig.tight_layout()
     fig.savefig(ruta, bbox_inches="tight")
     plt.close(fig)

@@ -1,4 +1,5 @@
 \section{Metodología}
+\label{sec:metodo}
 \subsection{El terreno y el MDP}
 Usamos un recorte de unos $3\times3$~km del modelo digital de elevación (Digital
 Elevation Model, DEM) Copernicus GLO-30, bajado de AWS Open Data. La
@@ -36,8 +37,14 @@ cualquier ciclo y no crea la trampa del potencial.
 
 \subsection{Arquitectura e hiperparámetros}
 La red (tanto la de $Q$ como la de política) es un perceptrón de $83 \to 128 \to 128
-\to 4$, unos 27~mil parámetros. Usamos $\gamma=0.99$, optimizador Adam, pérdida de
-Huber y recorte de gradiente en DQN. La exploración es $\varepsilon$-greedy
-decreciente. Un \emph{curriculum} hace que los inicios arranquen cerca de la meta y
-se alejen con el entrenamiento. Fijamos la semilla en todos los experimentos para
-que sean reproducibles.
+\to 4$ con activación ReLU, unos 27~mil parámetros. Usamos descuento
+$\gamma=0{,}99$, tasa de aprendizaje $\alpha=10^{-3}$ con Adam, lotes de 64
+transiciones, un búfer de $10^5$, pérdida de Huber y recorte de gradiente a norma
+10. La red objetivo $\theta^-$ se sincroniza cada 1000 \emph{updates}. La
+exploración es $\varepsilon$-greedy con decaimiento lineal de $1{,}0$ a $0{,}05$
+sobre los primeros $1{,}5\times10^{5}$ pasos. Cada experimento corre 1500 episodios
+de a lo más 500 pasos. Un \emph{curriculum} hace que los inicios arranquen a lo
+sumo a 20 celdas de la meta y se alejen hasta cubrir el mapa en la primera mitad del
+entrenamiento. Fijamos la semilla en todos los experimentos para que sean
+reproducibles. La Tabla~\ref{tab:hiper} de la Sec.~\ref{sec:impl} lista los valores
+completos.

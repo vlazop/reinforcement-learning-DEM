@@ -24,3 +24,19 @@ En este trabajo subimos la dificultad y usamos Aprendizaje por Refuerzo Profundo
         respaldan: la trampa del \emph{shaping} potencial y la divergencia de $Q$
         con metas aleatorias.
 \end{itemize}
+
+En cuanto al método, modelamos el terreno como un MDP sobre un modelo digital de
+elevación real, con un costo de paso que crece con la pendiente. El agente observa
+un parche local y un vector a la meta, y aproxima $Q(s,a)$ con un perceptrón de dos
+capas ocultas entrenado por DQN, con reproducción de experiencias y red objetivo.
+Entrenamos con un \emph{curriculum} que aleja poco a poco el punto de partida, y
+evaluamos la política greedy sobre 20 inicios que el agente nunca vio, midiendo tasa
+de éxito y brecha de costo contra la ruta óptima de Dijkstra.
+
+El resto del documento se organiza así. La Sec.~\ref{sec:related} revisa los
+trabajos previos y ubica nuestro aporte. La Sec.~\ref{sec:teoria} resume la teoría
+de los algoritmos que usamos. La Sec.~\ref{sec:metodo} define el MDP, la observación
+y el diseño de la recompensa. La Sec.~\ref{sec:impl} detalla la implementación, el
+pseudocódigo y los hiperparámetros. La Sec.~\ref{sec:exp} presenta los resultados y
+la Sec.~\ref{sec:disc} los discute. La Sec.~\ref{sec:conc} cierra con las
+conclusiones y el trabajo futuro.
