@@ -175,7 +175,7 @@ class TerrenoEnv:
         aprovecha el entrenamiento con "exploring starts": episodios que
         nacen en celdas aleatorias para conocer todo el mapa más rápido.
         """
-        self.estado = inicio or self.inicio
+        self.estado = inicio if inicio is not None else self.inicio
         self.pasos = 0
         return self.estado
 
