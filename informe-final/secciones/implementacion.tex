@@ -1,0 +1,181 @@
+\section{Implementación}
+\label{sec:impl}
+
+\subsection{Librerías y organización del código}
+Todo está escrito en Python~3. Usamos \textbf{PyTorch} para las redes, el
+optimizador y el cálculo de gradientes; \textbf{NumPy} para el terreno, las máscaras
+de obstáculos y los generadores aleatorios; \textbf{rasterio} para leer el modelo
+digital de elevación en formato GeoTIFF y recortar la ventana del Misti; y
+\textbf{Matplotlib} para las figuras. Dijkstra lo implementamos a mano con la cola
+de prioridad \texttt{heapq} de la biblioteca estándar, para no depender de un
+paquete de grafos. No usamos ninguna librería de RL (Gymnasium, Stable-Baselines):
+el entorno, el búfer, el agente y el bucle de entrenamiento son código propio, lo
+que nos permitió apagar componentes individuales para las ablaciones.
+
+El código está partido en módulos reutilizables más un notebook por experimento
+(Tabla~\ref{tab:codigo}). El entorno y los algoritmos viven en un solo lugar; los
+notebooks solo los configuran y grafican. Así los cuatro experimentos comparten
+exactamente el mismo entorno y el mismo procedimiento de test.
+
+\begin{table}[t]
+\caption{Organización del código}
+\label{tab:codigo}
+\centering
+\footnotesize
+\begin{tabular}{ll}
+\toprule
+Archivo & Contenido \\
+\midrule
+\texttt{entorno\_drl.py} & MDP: terreno, observación, recompensa \\
+\texttt{dqn.py}          & Red $Q$, búfer, agente DQN \\
+\texttt{train.py}        & Entrenamiento y test de DQN \\
+\texttt{reinforce.py}    & Red de política, agente REINFORCE \\
+\texttt{train\_pg.py}    & Entrenamiento por episodios \\
+\texttt{baselines.py}    & Dijkstra y brecha vs el óptimo \\
+\texttt{datos.py}        & Descarga y recorte del DEM \\
+\texttt{viz.py}          & Figuras \\
+\midrule
+\texttt{01\_meta\_fija}    & DQN principal, rutas, ablaciones \\
+\texttt{02\_estocastico}   & Transición estocástica (resbalón) \\
+\texttt{03\_double\_dqn}   & Double DQN y meta aleatoria \\
+\texttt{04\_reinforce}     & REINFORCE vs DQN \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Procedimiento paso a paso}
+El flujo completo, desde el dato crudo hasta los números del informe, tiene seis
+etapas:
+
+\begin{enumerate}
+  \item \textbf{Datos.} Se descarga el mosaico Copernicus DSM GLO-30 desde AWS Open
+        Data y se recorta la ventana $(-71{,}475,\,-16{,}375)$ a
+        $(-71{,}445,\,-16{,}345)$ en coordenadas geográficas, unos $3\times3$~km. El
+        recorte queda en $108\times108$ celdas de 30~m.
+  \item \textbf{Terreno derivado.} Se calcula la pendiente con el gradiente numérico
+        de la elevación. De ahí salen el costo por celda,
+        $c = 1 + 8\,\lVert\nabla z\rVert$, y la máscara de obstáculos
+        ($\lVert\nabla z\rVert > 0{,}60$). Un recorrido en anchura (Breadth-First
+        Search, BFS) se queda con la componente conexa más grande de celdas libres,
+        para que cualquier par (inicio, meta) que se sortee tenga camino garantizado.
+  \item \textbf{Observación.} En cada paso se extrae el parche $9\times9$ de
+        pendiente normalizada centrado en el agente, con relleno de valor $1{,}0$
+        fuera del mapa (el borde se ve como pared), y se le concatena el vector a la
+        meta dividido por el tamaño del mapa. Son 83 números en $[-1,1]$.
+  \item \textbf{Entrenamiento.} Bucle del Algoritmo~\ref{alg:dqn} para los métodos
+        de valor. Para REINFORCE se junta el episodio completo y se hace un solo
+        update de gradiente de política al final.
+  \item \textbf{Evaluación.} Cada 100 episodios (200 en las ablaciones y en el
+        experimento de divergencia) se corre el test greedy con $\varepsilon=0$
+        sobre 20 pares de test fijos.
+  \item \textbf{Comparación.} Para los pares donde el agente llegó, se calcula la
+        ruta óptima con Dijkstra sobre el mapa completo y se reporta la brecha
+        relativa de costo, $100\,(c_{\text{agente}}/c_{\text{Dijkstra}}-1)$.
+\end{enumerate}
+
+\begin{algorithm}[t]
+\caption{Entrenamiento DQN con curriculum}
+\label{alg:dqn}
+\small
+\begin{algorithmic}[1]
+\State Inicializar red $Q_\theta$; copiar $\theta^- \leftarrow \theta$
+\State Inicializar búfer $\mathcal{D}$ de capacidad $10^5$; $t \leftarrow 0$
+\For{$e = 1$ \textbf{hasta} $E$}
+  \State $d_{\max} \leftarrow 20 + \min(1, 2e/E)\,(216-20)$ \Comment{curriculum}
+  \State $s \leftarrow$ \textsc{Reset}(inicio aleatorio con $d \le d_{\max}$)
+  \Repeat
+    \State $\varepsilon \leftarrow \max(0{,}05,\ 1 - t/150000)$
+    \State $a \leftarrow \arg\max_{a'} Q_\theta(s,a')$ con prob. $1-\varepsilon$,
+           si no al azar
+    \State $(s', r, \text{fin}) \leftarrow$ \textsc{Step}($a$)
+    \State Guardar $(s,a,r,s',\text{fin})$ en $\mathcal{D}$
+    \If{$|\mathcal{D}| \ge 2000$}
+      \State Muestrear un lote de 64 transiciones de $\mathcal{D}$
+      \State $y \leftarrow r + \gamma\,(1-\text{fin})\max_{a'} Q_{\theta^-}(s',a')$
+      \State $\theta \leftarrow \theta - \eta\,\nabla_\theta\,
+             \mathcal{L}_{\text{Huber}}(Q_\theta(s,a),\,y)$
+      \State Recortar $\lVert\nabla_\theta\rVert \le 10$
+      \State Cada 1000 \emph{updates}: $\theta^- \leftarrow \theta$
+    \EndIf
+    \State $s \leftarrow s'$; \ $t \leftarrow t+1$
+  \Until{fin \textbf{o} 500 pasos}
+  \State Cada 100 episodios: evaluar con $\varepsilon=0$ sobre los pares de test
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+Las tres banderas de ablación cambian una sola línea del Algoritmo~\ref{alg:dqn}.
+Sin \emph{replay}, la línea 12 se salta y el update usa solo la transición recién
+vivida. Sin red objetivo, la línea 13 evalúa con $\theta$ en lugar de $\theta^-$. En
+Double DQN, la línea 13 se reemplaza por el objetivo de la ec.~\eqref{eq:ddqn}.
+
+\subsection{Hiperparámetros}
+La Tabla~\ref{tab:hiper} lista todos los valores. Son los mismos en los cuatro
+experimentos, salvo el número de episodios y las banderas de ablación.
+
+\begin{table}[t]
+\caption{Hiperparámetros del entorno y de los agentes}
+\label{tab:hiper}
+\centering
+\footnotesize
+\begin{tabular}{ll}
+\toprule
+Parámetro & Valor \\
+\midrule
+\multicolumn{2}{l}{\textit{Entorno}} \\
+malla / celda                 & $108\times108$ / 30~m \\
+peso de pendiente             & $8{,}0$ \\
+umbral de obstáculo           & $0{,}60$ \\
+lado del parche               & $9$ (observación de 83) \\
+pasos máximos por episodio    & $500$ \\
+distancia mínima inicio--meta & $15$ celdas \\
+recompensa de paso            & $-c/10$ \\
+choque / meta                 & $-5$ / $+10$ \\
+$k$ de \emph{shaping}         & $0{,}2$ \\
+prob.\ de resbalón            & $0$ (o $0{,}25$) \\
+\midrule
+\multicolumn{2}{l}{\textit{Red (valor y política)}} \\
+arquitectura                  & $83\to128\to128\to4$, ReLU \\
+parámetros                    & $\approx 27$~mil \\
+\midrule
+\multicolumn{2}{l}{\textit{DQN}} \\
+descuento $\gamma$            & $0{,}99$ \\
+tasa de aprendizaje $\alpha$  & $10^{-3}$ (Adam) \\
+tamaño de lote                & $64$ \\
+capacidad del búfer           & $10^5$ \\
+calentamiento                 & $2000$ transiciones \\
+sincronización $\theta^-$     & cada $1000$ \emph{updates} \\
+pérdida / recorte             & Huber / $\lVert\nabla\rVert\le10$ \\
+$\varepsilon$                 & $1{,}0 \to 0{,}05$ lineal \\
+horizonte de $\varepsilon$    & $1{,}5\times10^{5}$ pasos \\
+\midrule
+\multicolumn{2}{l}{\textit{REINFORCE}} \\
+$\gamma$ / $\alpha$           & $0{,}99$ / $10^{-3}$ (Adam) \\
+línea base                    & normalización de $G_t$ \\
+\emph{updates}                & uno por episodio \\
+\midrule
+\multicolumn{2}{l}{\textit{Común}} \\
+episodios                     & $1500$ ($1600$ en divergencia) \\
+curriculum $d_{\max}$         & $20 \to 216$ (1.\textsuperscript{a} mitad) \\
+pares de test                 & $20$, con $\varepsilon=0$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Reproducibilidad}
+Fijamos la semilla $42$ en NumPy, PyTorch y el generador del entorno al inicio de
+cada experimento, y el agente recibe además su propia semilla. Los 20 pares de test
+se sortean con una semilla distinta, $12345$, y se generan antes de entrenar: por
+construcción, los inicios del test no dependen de nada que el agente haya visto
+durante el entrenamiento. La comparación entre configuraciones (DQN completo, sin
+\emph{replay}, sin $\theta^-$, Double DQN) usa el mismo entorno recién construido y
+la misma semilla, de modo que la única diferencia entre corridas es la bandera que
+se apaga.
+
+La red tiene unos 27~mil parámetros, así que el entrenamiento corre en CPU sin
+problemas; los notebooks detectan una GPU si está disponible y la usan. Un
+entrenamiento de 1500 episodios toma unos 12~minutos.
+El script \texttt{gen\_figuras\_informe.py} reproduce el conjunto completo de
+figuras en una sola corrida. El DEM no se versiona: \texttt{datos.py} lo descarga
+del bucket público de Copernicus y aplica el mismo recorte, así que el terreno es
+idéntico en cualquier máquina.
