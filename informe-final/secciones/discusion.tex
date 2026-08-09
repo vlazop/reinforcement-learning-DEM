@@ -1,22 +1,11 @@
 \section{Discusión}
 \label{sec:disc}
+
 \subsection{La trampa del shaping potencial}
-El \emph{shaping} potencial con $\gamma<1$ deja un residuo positivo por estar lejos
-de la meta. Sobre un ciclo entre dos celdas, la recompensa de \emph{shaping}
-telescopea a $k(1-\gamma)(d_X + d_Y) > 0$. A distancias grandes eso significa que
-oscilar lejos de la meta (ir y volver, \emph{ping-pong}) da recompensa positiva, así
-que la política greedy se queda atrapada yendo y viniendo entre dos celdas. El
-\emph{shaping} de progreso quita ese residuo y el problema desaparece. Es un caso
-donde una técnica correcta en teoría, la invariancia de la política óptima, falla en
-la práctica por cómo interactúa con el descuento.
+El rediseño de recompensa (*reward shaping*) potencial formulado bajo un factor de descuento temporal $\gamma < 1$ induce un sesgo residual positivo proporcional a la distancia al objetivo. Específicamente, al evaluar una trayectoria cíclica cerrada entre dos celdas adyacentes $X$ e $Y$ distantes de la meta, la suma de las recompensas potenciales intermedias no se anula, sino que colapsa (*telescoping*) a un valor neto de $k(1-\gamma)(d_X + d_Y) > 0$. Para distancias al objetivo elevadas, este residuo supera el costo de paso negativo del entorno, resultando en un incentivo neto positivo por oscilar indefinidamente entre celdas lejanas (efecto *ping-pong*). En consecuencia, la política codiciosa converge hacia bucles infinitos locales. El esquema de *shaping* de progreso propuesto elimina este residuo sistemático, resolviendo la anomalía. Este fenómeno ilustra cómo una propiedad teóricamente robusta (la invariancia de la política óptima en entornos sin descuento o con trayectorias finitas sin descuento) puede degradarse en la práctica debido a su interacción con el descuento episódico.
 
 \subsection{Divergencia y la elección de meta fija}
-Con metas aleatorias, la sobreestimación del $\max$ se realimenta con el
-\emph{bootstrapping} y los valores $Q$ se disparan. Double DQN retrasa el efecto,
-pero en nuestro caso no lo evita. La meta fija da un campo de valor único y estable.
-No es una limitación accidental, es una decisión de alcance con motivo.
+Bajo entornos con objetivos variables, el sesgo de sobreestimación introducido por el operador $\max$ se propaga y amplifica de forma recursiva a través del proceso de *bootstrapping*, induciendo la divergencia exponencial observada de los valores $Q$. Si bien el algoritmo Double DQN ralentiza este proceso de desestabilización, no logra evitar la divergencia en la configuración evaluada. Por el contrario, la fijación del objetivo genera un campo de valores único, estacionario y convergente. Dicha restricción metodológica no representa una limitación accidental del diseño, sino una decisión fundamentada orientada a garantizar la estabilidad numérica del aprendizaje.
 
-\subsection{Limitación: política single-goal}
-Nuestra política generaliza sobre el inicio, pero está entrenada para una meta fija.
-Si se cambia la meta, hay que reentrenar. Llevarla a metas cualesquiera pide técnicas
-más robustas contra la divergencia, y lo dejamos como trabajo futuro.
+\subsection{Limitación: política de meta única}
+La principal limitación de la política desarrollada radica en su especificidad respecto al objetivo: aunque el agente demuestra una notable capacidad de generalización sobre los estados iniciales, la política está parametrizada para una meta estática específica. Modificar la ubicación del objetivo requiere reiniciar el proceso de entrenamiento. Extender la capacidad de generalización hacia metas arbitrarias requiere el empleo de arquitecturas condicionales y mecanismos de regularización robustos contra la divergencia, aspectos propuestos como líneas prioritarias de investigación futura.

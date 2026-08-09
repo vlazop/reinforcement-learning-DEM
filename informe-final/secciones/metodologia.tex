@@ -1,66 +1,37 @@
 \section{Metodología}
 \label{sec:metodo}
+
 \subsection{El terreno y el MDP}
-Usamos un recorte de unos $3\times3$~km del modelo digital de elevación (Digital
-Elevation Model, DEM) Copernicus GLO-30, bajado de AWS Open Data. La
-Fig.~\ref{fig:terreno} muestra la elevación y la pendiente. El MDP es:
+Para el modelado del entorno se utiliza un recorte de aproximadamente $3\times3$~km correspondiente al Modelo Digital de Elevación (Digital Elevation Model, DEM) Copernicus GLO-30, obtenido a través del repositorio público AWS Open Data. La Fig.~\ref{fig:terreno} ilustra la distribución espacial de la elevación y de la pendiente. El problema de navegación se formula mediante un MDP definido por:
 \begin{itemize}
-  \item \textbf{Estados:} el agente está en una celda de la malla $108\times108$.
-  \item \textbf{Acciones:} arriba, abajo, izquierda, derecha.
-  \item \textbf{Transición:} determinística, u opcionalmente estocástica (el
-        resbalón de la Sec.~\ref{sec:estoc}).
-  \item \textbf{Recompensa:} un costo por paso que crece con la pendiente, un
-        castigo si choca contra un obstáculo, y un premio al llegar a la meta.
+  \item \textbf{Estados:} La posición discreta del agente en una cuadrícula de $108\times108$ celdas.
+  \item \textbf{Acciones:} El conjunto finito de movimientos cardinales $\mathcal{A} = \{\text{arriba}, \text{abajo}, \text{izquierda}, \text{derecha}\}$.
+  \item \textbf{Transición:} Determinística en el caso base, o estocástica según el modelo de perturbación por deslizamiento descrito en la Sec.~\ref{sec:estoc}.
+  \item \textbf{Recompensa:} Una penalización por paso proporcional a la pendiente local, una penalización por colisión contra obstáculos inaccesibles, y una recompensa positiva terminal al alcanzar el objetivo.
 \end{itemize}
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\columnwidth]{figuras/01_terreno.png}
-\caption{Terreno real (faldas del Misti): elevación (izq.) y pendiente (der.),
-malla $108\times108$ de 30~m.}
+\caption{Terreno real (faldas del Misti): elevación (izq.) y pendiente (der.), malla $108\times108$ de 30~m.}
 \label{fig:terreno}
 \end{figure}
 
 \subsection{Observación local}
-El agente no ve el mapa completo. Ve un parche de $9\times9$ celdas de pendiente
-centrado en él (81 valores) más el vector $(\Delta \text{fila}, \Delta
-\text{columna})$ hacia la meta, en total 83 números (Fig.~\ref{fig:obs}). Ese
-tamaño no depende del mapa. Y como terrenos parecidos dan observaciones parecidas,
-la red puede generalizar. Una tabla no puede: necesitaría una entrada por cada par
-(posición, meta), del orden de $10^8$ valores.
+El agente opera bajo condiciones de observación parcial del entorno. En cada paso temporal, recibe un parche local de $9\times9$ celdas de pendiente normalizada centrado en su posición (81 dimensiones), al cual se concatena el vector bidimensional de distancia relativa $(\Delta \text{fila}, \Delta \text{columna})$ hacia el objetivo, totalizando un vector de características de entrada de 83 dimensiones (Fig.~\ref{fig:obs}). Esta representación es independiente de la escala global del mapa. Asimismo, la invarianza espacial de las observaciones locales facilita la capacidad de generalización del aproximador neuronal, a diferencia del esquema tabular clásico, cuya dimensionalidad escalaría a un orden impracticable de $10^8$ combinaciones de pares de posición y objetivo.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\columnwidth]{figuras/02_observacion.png}
-\caption{Observación local: el mapa completo con la ventana del agente (izq.) y el
-parche $9\times9$ que recibe la red (der.), más el vector a la meta.}
+\caption{Observación local: el mapa completo con la ventana del agente (izq.) y el parche $9\times9$ que recibe la red (der.), más el vector a la meta.}
 \label{fig:obs}
 \end{figure}
 
 \subsection{Meta fija con inicio aleatorio}
-La meta es siempre la misma celda; el inicio cambia en cada episodio. Con una sola
-meta, la función de valor es un campo suave y el entrenamiento se mantiene estable.
-El inicio aleatorio hace el problema no trivial: el agente aprende a llegar desde
-cualquier celda, no una ruta memorizada.
+El objetivo se establece en una coordenada espacial fija durante todo el proceso experimental, mientras que el estado inicial se muestrea aleatoriamente al inicio de cada episodio. Mantener el objetivo fijo estabiliza el entrenamiento al generar un campo de valores continuo y convergente. Por su parte, la variabilidad del origen previene la memorización de trayectorias únicas y obliga al agente a aprender una política generalizable de aproximación al objetivo desde cualquier cuadrante del mapa.
 
 \subsection{Reward shaping de progreso}
-Con la meta lejos en un mapa grande, el agente casi nunca la encuentra por azar y el
-premio nunca aparece. Le damos un bono por acercarse. Primero probamos el
-\emph{shaping} potencial $\Phi(s)=-k\cdot d(s,\text{meta})$, y falló
-(Sec.~\ref{sec:disc}). Lo cambiamos por \textbf{shaping de progreso}, $r
-\mathrel{+}= k\,[\,d(s,\text{meta}) - d(s',\text{meta})\,]$, que suma cero en
-cualquier ciclo y no crea la trampa del potencial.
+Debido a la baja probabilidad de alcanzar de forma aleatoria una meta lejana en mapas de gran escala (recompensa dispersa), se implementa una señal de recompensa densa complementaria. La aplicación inicial de un rediseño potencial de la forma $\Phi(s)=-k\cdot d(s,\text{meta})$ resultó en convergencia subóptima debido a la interacción con el descuento temporal (Sec.~\ref{sec:disc}). En su lugar, se propone un \textbf{rediseño de recompensa por progreso}, formulado como $r \mathrel{+}= k\,[\,d(s,\text{meta}) - d(s',\text{meta})\,]$. Esta formulación garantiza una acumulación neta de cero a lo largo de cualquier trayectoria cíclica cerrada, evitando los incentivos espurios del esquema potencial.
 
 \subsection{Arquitectura e hiperparámetros}
-La red (tanto la de $Q$ como la de política) es un perceptrón de $83 \to 128 \to 128
-\to 4$ con activación ReLU, unos 27~mil parámetros. Usamos descuento
-$\gamma=0{,}99$, tasa de aprendizaje $\alpha=10^{-3}$ con Adam, lotes de 64
-transiciones, un búfer de $10^5$, pérdida de Huber y recorte de gradiente a norma
-10. La red objetivo $\theta^-$ se sincroniza cada 1000 \emph{updates}. La
-exploración es $\varepsilon$-greedy con decaimiento lineal de $1{,}0$ a $0{,}05$
-sobre los primeros $1{,}5\times10^{5}$ pasos. Cada experimento corre 1500 episodios
-de a lo más 500 pasos. Un \emph{curriculum} hace que los inicios arranquen a lo
-sumo a 20 celdas de la meta y se alejen hasta cubrir el mapa en la primera mitad del
-entrenamiento. Fijamos la semilla en todos los experimentos para que sean
-reproducibles. La Tabla~\ref{tab:hiper} de la Sec.~\ref{sec:impl} lista los valores
-completos.
+La arquitectura aproximadora empleada (tanto para la función de valor como para la política) consiste en un perceptrón multicapa estructurado como $83 \to 128 \to 128 \to 4$ con funciones de activación ReLU, sumando aproximadamente 27~mil parámetros optimizables. Se selecciona un factor de descuento $\gamma=0{,}99$, una tasa de aprendizaje $\alpha=10^{-3}$ utilizando el optimizador Adam, lotes de entrenamiento de 64 transiciones y un búfer de memoria de reproducción con capacidad para $10^5$ registros. El entrenamiento emplea la función de pérdida de Huber y recorte de gradientes a una norma máxima de 10. La red objetivo $\theta^-$ se actualiza periódicamente cada 1000 iteraciones de optimización. La exploración se modela mediante una política $\varepsilon$-greedy con un decaimiento lineal de $\varepsilon$ de $1{,}0$ a $0{,}05$ distribuido sobre los primeros $1{,}5\times10^{5}$ pasos. Cada experimento consta de 1500 episodios con un límite máximo de 500 pasos por episodio. Adicionalmente, se introduce un esquema curricular de entrenamiento en el cual los estados iniciales se restringen a un radio inicial de 20 celdas respecto a la meta, expandiéndose progresivamente hasta cubrir la totalidad del mapa durante la primera mitad del entrenamiento. Se fija una semilla pseudoaleatoria global en todas las simulaciones para garantizar la reproducibilidad. Los hiperparámetros completos se detallan en la Tabla~\ref{tab:hiper} de la Sec.~\ref{sec:impl}.

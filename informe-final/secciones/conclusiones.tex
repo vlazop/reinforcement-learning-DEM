@@ -1,10 +1,5 @@
 \section{Conclusiones y trabajo futuro}
 \label{sec:conc}
-Construimos un agente de Aprendizaje por Refuerzo Profundo que navega terreno real
-con observación local e inicio aleatorio, y aproxima la función de valor con una red
-neuronal. El agente llega a la meta desde inicios que nunca vio, con una ruta
-cercana al óptimo de Dijkstra, y aguanta las transiciones estocásticas. Comparamos
-las familias de valor y de política, y reportamos dos problemas de diseño con datos
-que los respaldan. Para el futuro proponemos tres líneas: políticas condicionadas a
-la meta (\emph{goal-conditioned}) con Hindsight Experience Replay o replay
-priorizado; mapas más grandes, como el volcán completo; y métodos actor-critic.
+En el presente estudio se desarrolló e implementó un agente de Aprendizaje por Refuerzo Profundo capaz de navegar sobre topografía real bajo condiciones de observación parcial y origen aleatorio, aproximando la función de valor mediante un modelo neuronal. Los resultados experimentales demuestran la viabilidad del enfoque: el agente entrenado generaliza con éxito, alcanzando el objetivo desde posiciones iniciales no observadas durante la fase de optimización, describiendo trayectorias con una brecha media de costo de únicamente el 3,3\,\% respecto a la frontera de optimalidad de Dijkstra, y exhibiendo robustez ante perturbaciones estocásticas de transición. Asimismo, se realizó un análisis sistemático comparando paradigmas basados en valor y política, y se documentó de forma empírica la resolución de dos problemáticas críticas en el diseño de la señal de recompensa y el espacio de metas.
+
+Como líneas de trabajo futuro, se proponen: a) la extensión del algoritmo a políticas condicionadas al objetivo (*goal-conditioned*) incorporando técnicas de reetiquetado de experiencias (Hindsight Experience Replay, HER) o muestreo priorizado (PER) para estabilizar la función de valor; b) la escalabilidad del modelo a entornos geográficos de mayor dimensión; y c) la evaluación de arquitecturas de gradiente de política avanzadas de tipo actor-crítico.

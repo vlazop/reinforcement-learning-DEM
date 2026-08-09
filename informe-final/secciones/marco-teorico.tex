@@ -1,56 +1,38 @@
 \section{Marco teórico}
 \label{sec:teoria}
+
 \subsection{MDP y Q-learning}
-Un MDP se define por estados $s$, acciones $a$, una transición $P(s'|s,a)$ y una
-recompensa $r(s,a)$. El objetivo es una política $\pi$ que maximice el retorno
-descontado $\sum_t \gamma^t r_t$. Q-learning aprende la función de valor de acción
-$Q(s,a)$ con la actualización por diferencia temporal (Temporal Difference, TD):
+Un MDP se formaliza mediante una tupla constituida por un conjunto de estados $s$, un conjunto de acciones $a$, una función de transición de probabilidad $P(s'|s,a)$ y una función de recompensa $r(s,a)$. El objetivo fundamental es determinar una política $\pi$ que maximice el retorno esperado descontado $\sum_t \gamma^t r_t$. El algoritmo Q-learning aproxima de forma no paramétrica la función de valor de la acción $Q(s,a)$ mediante la regla de actualización por diferencia temporal (Temporal Difference, TD):
 \begin{equation}
 Q(s,a) \leftarrow Q(s,a) + \alpha\big[r + \gamma \max_{a'} Q(s',a') - Q(s,a)\big].
 \end{equation}
-La política greedy es $\pi(s)=\arg\max_a Q(s,a)$.
+La política codiciosa (*greedy*) asociada se define como $\pi(s)=\arg\max_a Q(s,a)$.
 
 \subsection{Deep Q-Network (DQN)}
-Cuando hay muchos estados, la tabla $Q$ no cabe. DQN \cite{mnih2015} la reemplaza
-por una red neuronal $Q(s,a;\theta)$ y minimiza la pérdida
+Ante espacios de estados de alta dimensionalidad o continuos, la representación tabular resulta computacionalmente inviable. DQN \cite{mnih2015} soluciona esta limitación parametrizando la función de valor mediante una red neuronal $Q(s,a;\theta)$ y minimizando la función de pérdida cuadrática:
 \begin{equation}
 \mathcal{L}(\theta) = \big(r + \gamma \max_{a'} Q(s',a';\theta^-) - Q(s,a;\theta)\big)^2,
 \end{equation}
-por descenso de gradiente. Entrenar así, sin más, es inestable. DQN lo estabiliza
-con dos mecanismos de la clase~5.1:
+empleando optimización por descenso de gradiente. Con el fin de mitigar la inestabilidad inherente al entrenamiento conjunto de aproximadores no lineales con aprendizaje por *bootstrapping*, DQN incorpora dos mecanismos de estabilización:
 \begin{itemize}
-  \item \textbf{Reproducción de Experiencias} (experience replay): guarda las
-        transiciones y entrena con mini-lotes al azar, para romper la correlación
-        entre pasos seguidos.
-  \item \textbf{Objetivos-Q Fijados} (red objetivo $\theta^-$): una copia congelada
-        de la red calcula el objetivo, y se sincroniza cada cierto número de pasos.
-        Así el agente no persigue un blanco que se mueve con cada update.
+  \item \textbf{Reproducción de Experiencias} (*experience replay*): almacena las transiciones históricas en un búfer circular y extrae mini-lotes aleatorios para el entrenamiento, rompiendo la autocorrelación temporal entre muestras sucesivas.
+  \item \textbf{Red Objetivo} (parámetros $\theta^-$): una copia de la red neuronal con parámetros congelados calcula el valor del objetivo de Bellman, actualizándose de forma periódica. Esto evita la inestabilidad derivada de optimizar hacia un objetivo dinámico (*moving target*).
 \end{itemize}
 
 \subsection{Double DQN}
-El operador $\max$ del objetivo tiende a sobreestimar los valores, porque siempre
-elige el ruido positivo. Double DQN \cite{vanhasselt2016} separa quién elige la
-acción de quién la evalúa:
+El operador de maximización empleado en el cálculo del objetivo de Bellman introduce un sesgo optimista sistemático debido a la acumulación de ruido positivo. Double DQN \cite{vanhasselt2016} soluciona esta sobreestimación desacoplando el proceso de selección de la acción del proceso de evaluación cuantitativa del estado resultante:
 \begin{equation}
 y = r + \gamma\, Q\big(s',\ \arg\max_{a'} Q(s',a';\theta);\ \theta^-\big),
 \label{eq:ddqn}
 \end{equation}
-lo que reduce ese sesgo.
+donde los pesos activos $\theta$ seleccionan la acción óptima y los pesos congelados $\theta^-$ determinan su valor.
 
 \subsection{REINFORCE (gradiente de política)}
-REINFORCE \cite{williams1992} no aprende valores $Q$. Aprende directamente una
-política estocástica $\pi(a|s;\theta)$ y ajusta sus parámetros hacia donde crece el
-retorno:
+A diferencia de los enfoques basados en valor, REINFORCE \cite{williams1992} parametriza directamente una política estocástica $\pi(a|s;\theta)$ y optimiza sus parámetros en la dirección del gradiente del retorno esperado:
 \begin{equation}
 \nabla_\theta J \approx \sum_t \nabla_\theta \log \pi(a_t|s_t;\theta)\, G_t,
 \end{equation}
-donde $G_t$ es el retorno descontado desde el paso $t$. Su punto débil es la
-varianza. Para bajarla usamos una línea base simple: dentro de cada episodio
-normalizamos los retornos, les restamos la media y los dividimos por su desviación
-estándar \cite{sutton2018}.
+donde $G_t$ representa el retorno acumulado descontado obtenido a partir del paso temporal $t$. Para mitigar la alta varianza intrínseca a este estimador, se introduce una línea base mediante la normalización de los retornos $G_t$ dentro de cada episodio, sustrayendo la media muestral y dividiendo por la desviación estándar del lote \cite{sutton2018}.
 
 \subsection{Reward shaping}
-Cuando la recompensa es dispersa, un bono denso ayuda a aprender. El \emph{shaping}
-potencial \cite{ng1999} promete no cambiar la política óptima: $F = \gamma\,\Phi(s')
-- \Phi(s)$. En nuestro problema, con $\gamma<1$ y rutas largas, esa forma trae un
-efecto que no queríamos (Sec.~\ref{sec:disc}).
+En entornos con recompensas dispersas, el diseño de funciones de recompensa densas complementarias (*reward shaping*) acelera el proceso de aprendizaje. El rediseño potencial \cite{ng1999} formula una función de incentivo de la forma $F = \gamma\,\Phi(s') - \Phi(s)$, demostrando teóricamente la preservación de la política óptima. Sin embargo, en escenarios prácticos caracterizados por trayectorias extensas y factores de descuento $\gamma < 1$, dicha formulación introduce efectos colaterales indeseados debido a la acumulación del residuo temporal del descuento (Sec.~\ref{sec:disc}).

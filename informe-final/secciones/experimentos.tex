@@ -1,47 +1,33 @@
 \section{Experimentos y resultados}
 \label{sec:exp}
+
 \subsection{Configuración}
-El test mide dos cosas de la política greedy: cuántas veces llega a la meta y en
-cuántos pasos, sobre 20 inicios fijos sorteados con una semilla distinta a la del
-entrenamiento. Es decir, inicios que el agente nunca vio. Además comparamos el costo
-de la ruta del agente contra el óptimo exacto de Dijkstra.
+El procedimiento de evaluación cuantifica dos métricas clave de la política codiciosa ($\varepsilon=0$): la tasa de éxito en alcanzar la meta y la longitud media de la trayectoria (número de pasos). La evaluación se efectúa sobre 20 configuraciones de inicio fijas generadas de forma independiente a la muestra de entrenamiento (es decir, estados no observados previamente por el agente). Asimismo, se evalúa la desviación de costo acumulado respecto al camino óptimo global determinado mediante el algoritmo de Dijkstra.
 
 \subsection{DQN con meta fija}
-La Fig.~\ref{fig:curva} muestra la curva de aprendizaje. El agente llega al
-\textbf{100\,\% de éxito} (20 de 20 inicios) y se queda estable. La
-Fig.~\ref{fig:rutas} pone cuatro de sus rutas al lado de las de Dijkstra. Sobre los
-20 inicios, la brecha media de costo es de solo \textbf{3,3\,\%}, aunque el agente
-nunca vio el mapa completo, solo parches locales.
+La evolución del aprendizaje de la variante DQN principal se ilustra en la Fig.~\ref{fig:curva}. El agente converge de manera estable a una \textbf{tasa de éxito del 100\,\%} (20 de 20 trayectorias de prueba resueltas). La Fig.~\ref{fig:rutas} presenta una comparación espacial de las trayectorias aprendidas por el agente en contraste con las trayectorias óptimas de Dijkstra. Evaluado sobre el conjunto completo de prueba, el agente presenta una brecha media de costo de únicamente el \textbf{3,3\,\%}, un valor notable considerando que la red neuronal opera bajo observación parcial y no posee conocimiento del mapa topográfico global.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\columnwidth]{figuras/03_curva_dqn.png}
-\caption{Curva de aprendizaje de DQN con meta fija: recompensa, tasa de éxito de
-entrenamiento, pasos y test sobre inicios no vistos.}
+\caption{Curva de aprendizaje de DQN con meta fija: recompensa, tasa de éxito de entrenamiento, pasos y test sobre inicios no vistos.}
 \label{fig:curva}
 \end{figure}
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\columnwidth]{figuras/04_rutas_dijkstra.png}
-\caption{Rutas aprendidas por DQN (rojo) frente al óptimo exacto de Dijkstra
-(blanco), para cuatro pares inicio--meta de test.}
+\caption{Rutas aprendidas por DQN (rojo) frente al óptimo exacto de Dijkstra (blanco), para cuatro pares inicio--meta de test.}
 \label{fig:rutas}
 \end{figure}
 
 \subsection{Ablaciones}
-Repetimos el estudio de ablación de Liu \& Zou \cite{liu2018} en nuestro terreno:
-apagamos cada mecanismo de DQN y medimos qué pasa (Tabla~\ref{tab:ablacion},
-Fig.~\ref{fig:ablacion}). El resultado es claro. Sin la red objetivo ($\theta^-$) el
-agente no aprende nada (0\,\%), y sin la Reproducción de Experiencias tampoco
-(0\,\%). Los dos componentes son necesarios. Double DQN queda a la par del DQN
-completo (100\,\%).
+Se realiza un estudio de ablación análogo al planteado por Liu y Zou \cite{liu2018} desactivando de forma individual los mecanismos de estabilización del algoritmo DQN (Tabla~\ref{tab:ablacion}, Fig.~\ref{fig:ablacion}). El impacto experimental de ambas exclusiones es crítico: la desactivación de la red objetivo ($\theta^-$) impide la convergencia del aprendizaje (0\,\% de éxito), comportamiento similar al obtenido al omitir el búfer de reproducción de experiencias (0\,\% de éxito). Estos resultados evidencian la complementariedad e indispensabilidad de ambos componentes. La variante Double DQN presenta un rendimiento equivalente a la versión DQN estándar (100\,\% de éxito).
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\columnwidth]{figuras/05_ablaciones.png}
-\caption{Ablaciones: DQN completo, sin \emph{replay}, sin red objetivo
-($\theta^-$) y Double DQN.}
+\caption{Ablaciones: DQN completo, sin \emph{replay}, sin red objetivo ($\theta^-$) y Double DQN.}
 \label{fig:ablacion}
 \end{figure}
 
@@ -63,11 +49,7 @@ Double DQN          & 100\,\% \\
 
 \subsection{Transición estocástica}
 \label{sec:estoc}
-Volvemos el mundo estocástico con un resbalón: con una probabilidad que crece con la
-pendiente, la acción del agente se cambia por una al azar. La Fig.~\ref{fig:estoc}
-compara terreno determinista y estocástico. Los dos llegan al 100\,\% de éxito; el
-estocástico solo necesita unos pasos más (102 frente a 96). La política aguanta el
-azar, algo que Dijkstra no modela porque supone que el mundo es perfecto.
+Se evalúa la robustez del agente frente a perturbaciones del entorno mediante la introducción de transiciones estocásticas (deslizamiento). Específicamente, se modela una probabilidad de deslizamiento proporcional a la pendiente local, bajo la cual la acción seleccionada es reemplazada por una dirección cardinal aleatoria. La Fig.~\ref{fig:estoc} compara el desempeño del agente en entornos deterministas frente a estocásticos. En ambas condiciones se alcanza el 100\,\% de éxito; no obstante, el entorno estocástico requiere una longitud media de trayectoria ligeramente mayor (102 pasos frente a 96). Estos resultados demuestran la adaptabilidad de la política ante incertidumbre de transición, una propiedad que la formulación clásica de Dijkstra no aborda.
 
 \begin{figure}[ht]
 \centering
@@ -77,12 +59,7 @@ azar, algo que Dijkstra no modela porque supone que el mundo es perfecto.
 \end{figure}
 
 \subsection{Valor vs política: DQN y REINFORCE}
-La Fig.~\ref{fig:reinforce} compara DQN (basado en valor) con REINFORCE (basado en
-política) en el mismo terreno. Los dos llegan alto: DQN 100\,\% y REINFORCE 95\,\%.
-La diferencia está en cómo. DQN converge suave y estable, gracias a la Reproducción
-de Experiencias y la red objetivo. REINFORCE es más simple pero tiene mucha más
-varianza: la recompensa por episodio salta de un valor a otro. Es el comportamiento
-típico de cada familia.
+La comparación de desempeño entre el enfoque basado en valor (DQN) y el basado en política (REINFORCE) se presenta en la Fig.~\ref{fig:reinforce}. Ambos paradigmas alcanzan tasas de éxito elevadas (DQN: 100\,\%, REINFORCE: 95\,\%). Sin embargo, la dinámica de aprendizaje presenta diferencias sustanciales: DQN converge de forma suave y estable debido al efecto del búfer de reproducción y la red objetivo, mientras que REINFORCE exhibe una varianza significativa, con oscilaciones marcadas en el retorno episódico. Esta divergencia ilustra las características clásicas asociadas a cada familia de algoritmos.
 
 \begin{figure}[ht]
 \centering
@@ -92,17 +69,11 @@ típico de cada familia.
 \end{figure}
 
 \subsection{Divergencia con meta aleatoria}
-La Fig.~\ref{fig:diverge} muestra qué pasa si la meta también es aleatoria (problema
-\emph{goal-conditioned}). La magnitud media de los valores $Q$ se mantiene baja hasta
-cerca del episodio 1000 y luego \textbf{explota}: pasa de $\sim 1$ a más de $2400$.
-Mientras tanto la tasa de éxito nunca sube de 10\,\%. El agente no aprende una
-política que se sostenga, y los valores divergen por la sobreestimación del operador
-$\max$. Esta es la razón por la que elegimos meta fija.
+La Fig.~\ref{fig:diverge} presenta el rendimiento de DQN ante la introducción de objetivos variables en cada episodio (configuración *goal-conditioned*). Se observa que la magnitud media de los valores $Q$ se mantiene estable hasta el episodio 1000, momento a partir del cual experimenta una divergencia asintótica, escalando de un valor de $\sim 1$ a más de $2400$. De forma simultánea, la tasa de éxito colapsa por debajo del 10\,\%. Esta inestabilidad se atribuye al sesgo de sobreestimación del operador de maximización acumulado mediante *bootstrapping*, justificando la adopción de un esquema de meta fija en el presente estudio.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\columnwidth]{figuras/08_divergencia.png}
-\caption{Con meta aleatoria, la magnitud media de $Q$ (izq.) crece sin control
-(divergencia) y el éxito (der.) no se sostiene.}
+\caption{Con meta aleatoria, la magnitud media de $Q$ (izq.) crece sin control (divergencia) y el éxito (der.) no se sostiene.}
 \label{fig:diverge}
 \end{figure}

@@ -2,68 +2,22 @@
 \label{sec:related}
 
 \subsection{Planificación clásica de rutas}
-El problema de la ruta de costo mínimo sobre una malla está resuelto desde hace
-décadas. El algoritmo de Dijkstra \cite{dijkstra1959} da el óptimo exacto en tiempo
-polinomial, y sus variantes con heurística lo aceleran. La condición es fuerte:
-hace falta el grafo completo y un mundo determinista. Nosotros no competimos con
-Dijkstra en ese terreno; lo usamos como \emph{línea base exacta} para medir cuánto
-pierde un agente que solo ve un parche local y que además debe tolerar transiciones
-estocásticas, dos supuestos que la planificación clásica no cubre.
+La resolución del problema de la ruta de costo mínimo sobre mallas discretas se encuentra ampliamente documentada en la literatura. El algoritmo de Dijkstra \cite{dijkstra1959} proporciona el óptimo global exacto en tiempo polinomial, y sus variantes heurísticas optimizan la eficiencia de búsqueda. Sin embargo, dichos métodos requieren el conocimiento completo del grafo y un entorno estrictamente determinista. En el presente estudio, el algoritmo de Dijkstra se emplea como una línea base de optimalidad para evaluar el desempeño de un agente sujeto a observación parcial y transiciones estocásticas, dos supuestos que la planificación clásica no aborda de manera directa.
 
 \subsection{RL tabular sobre grillas}
-El gridworld es el caso de estudio estándar del Aprendizaje por Refuerzo
-\cite{sutton2018}, y Q-learning tabular lo resuelve bien cuando el número de estados
-es chico. En nuestro trabajo parcial seguimos esa línea: malla $54\times54$, inicio
-y meta fijos, una tabla $Q$ con una entrada por par (celda, acción). El límite
-aparece al crecer el problema. Con la malla completa de $108\times108$ y un inicio
-que cambia en cada episodio, la tabla tendría que almacenar del orden de $10^8$
-entradas y, peor aún, no compartiría nada entre estados parecidos: memoriza rutas en
-lugar de aprender a navegar. Este trabajo ataca justo ese límite.
+El entorno de tipo cuadrícula (*gridworld*) constituye el banco de pruebas estándar del Aprendizaje por Refuerzo \cite{sutton2018}, donde el algoritmo Q-learning tabular ofrece convergencia cuando el espacio de estados es acotado. En el trabajo preliminar se implementó dicha aproximación bajo una configuración de malla reducida ($54\times54$ celdas) con origen y destino fijos, requiriendo una tabla de valores de dimensiones manejables. No obstante, al escalar el problema a una cuadrícula completa de $108\times108$ celdas con puntos de inicio aleatorios, la formulación tabular resulta inviable debido a que el espacio combinado exigiría un orden de $10^8$ entradas. Adicionalmente, esta aproximación carece de la propiedad de transferencia de conocimiento entre estados similares, memorizando trayectorias en lugar de generalizar políticas de navegación.
 
 \subsection{Métodos profundos basados en valor}
-DQN \cite{mnih2015} reemplaza la tabla por una red neuronal y estabiliza el
-entrenamiento con dos mecanismos: reproducción de experiencias y una red objetivo
-congelada. Double DQN \cite{vanhasselt2016} corrige después el sesgo optimista que
-introduce el operador $\max$. Liu y Zou \cite{liu2018} midieron el peso real de la
-memoria de reproducción apagándola y variando su tamaño, con juegos de Atari como
-banco de pruebas. Nosotros repetimos ese estudio de ablación, pero sobre un modelo
-digital de elevación real en lugar de píxeles de videojuego, y con un espacio de
-observación de baja dimensión (83 números): un escenario donde no era obvio que los
-dos mecanismos siguieran siendo indispensables.
+DQN \cite{mnih2015} soluciona la limitación de la tabla mediante el uso de una red neuronal aproximadora y estabiliza el proceso de entrenamiento incorporando dos mecanismos clave: la memoria de reproducción de experiencias (*experience replay*) y una red objetivo congelada. Por su parte, Double DQN \cite{vanhasselt2016} mitiga el sesgo optimista derivado del operador de maximización en la actualización de Bellman. Liu y Zou \cite{liu2018} evaluaron de forma sistemática el impacto de la memoria de reproducción en entornos de la suite de Atari. En este trabajo se realiza un análisis de ablación análogo sobre un Modelo Digital de Elevación real, operando sobre un espacio de observaciones de baja dimensión (83 características de entrada), un escenario donde la contribución de cada componente para la estabilidad del aprendizaje no resultaba obvia *a priori*.
 
 \subsection{Métodos basados en política}
-REINFORCE \cite{williams1992} optimiza la política directamente por gradiente, sin
-pasar por una función de valor, y es el punto de partida de la familia
-actor-critic \cite{mnih2016}. Las comparaciones publicadas entre ambas familias
-suelen hacerse sobre entornos de referencia (Atari, MuJoCo). Nuestro aporte aquí es
-más modesto y más específico: corremos DQN y REINFORCE sobre el mismo terreno, con
-el mismo conjunto de pares de test y la misma métrica, para mostrar el contraste de
-estabilidad y varianza en un problema de navegación concreto.
+REINFORCE \cite{williams1992} optimiza los parámetros de la política de forma directa empleando el teorema del gradiente de la política, constituyendo el fundamento de la familia de algoritmos actor-crítico \cite{mnih2016}. Las evaluaciones comparativas entre métodos basados en valor y basados en política suelen realizarse sobre entornos sintéticos estandarizados (e.g., Atari o MuJoCo). El presente trabajo realiza una comparación directa entre DQN y REINFORCE evaluados sobre el mismo entorno topográfico y bajo las mismas métricas experimentales, con el propósito de caracterizar el comportamiento de la estabilidad y la varianza en una tarea de navegación específica.
 
 \subsection{Diseño de la recompensa}
-Ng, Harada y Russell \cite{ng1999} probaron que el \emph{shaping} de forma potencial
-$F=\gamma\,\Phi(s')-\Phi(s)$ no altera la política óptima. El resultado es correcto y
-se cita como receta segura. Lo que reportamos es un caso práctico donde esa receta
-falla: con $\gamma<1$ y distancias grandes, la garantía teórica sobrevive pero el
-agente aprendido no, porque el residuo de descuento premia oscilar lejos de la meta
-(Sec.~\ref{sec:disc}). No conocemos este efecto documentado con datos en un problema
-de navegación sobre terreno real, y es uno de los aportes del trabajo.
+Ng, Harada y Russell \cite{ng1999} demostraron que el rediseño de recompensas (*reward shaping*) estructurado bajo una función de diferencia potencial de la forma $F=\gamma\,\Phi(s')-\Phi(s)$ garantiza la preservación de la política óptima. Si bien esta formulación teórica es correcta y se adopta frecuentemente como directriz de diseño, en este trabajo se reporta un escenario práctico donde esta metodología induce la convergencia hacia políticas subóptimas. Específicamente, bajo factores de descuento $\gamma < 1$ y distancias de tránsito prolongadas, el residuo temporal del descuento recompensa al agente por oscilar repetidamente en regiones lejanas a la meta (Sec.~\ref{sec:disc}). La caracterización y documentación cuantitativa de esta anomalía en problemas de navegación sobre topografía real constituye una de las contribuciones empíricas del presente estudio.
 
 \subsection{Políticas condicionadas a la meta}
-Cuando la meta cambia entre episodios, el enfoque habitual es condicionar la función
-de valor a la meta (Universal Value Function Approximators, UVFA)
-\cite{schaul2015}, reetiquetar las trayectorias fallidas
-(Hindsight Experience Replay, HER) \cite{andrychowicz2017} o priorizar el muestreo
-del búfer (Prioritized Experience Replay, PER) \cite{schaul2016}. Nosotros no
-aplicamos estas técnicas; medimos el problema que las motiva. Mostramos que con
-metas aleatorias y DQN estándar los valores $Q$ divergen y la tasa de éxito no se
-sostiene, lo que justifica nuestra decisión de alcance (meta fija) y define la línea
-de trabajo futuro.
+En tareas de aprendizaje con objetivos variables (*goal-conditioned*), los enfoques comunes involucran el condicionamiento de la función de valor respecto al objetivo (UVFA) \cite{schaul2015}, el reetiquetado de trayectorias (Hindsight Experience Replay, HER) \cite{andrychowicz2017} o el muestreo priorizado del búfer (PER) \cite{schaul2016}. El alcance del presente trabajo se limita a caracterizar la problemática que motiva dichos desarrollos, demostrando que la aplicación de DQN estándar en entornos con metas aleatorias induce la divergencia de los valores $Q$ y el colapso de la tasa de éxito, lo cual fundamenta la adopción de una meta fija y establece la base para investigaciones futuras.
 
 \subsection{Resumen del aporte}
-Frente a lo anterior, este trabajo aporta tres cosas: un entorno de navegación sobre
-terreno real con observación local e inicio aleatorio donde la tabla deja de ser
-viable; una comparación controlada de las familias basada en valor y basada en
-política contra el óptimo exacto de Dijkstra; y dos hallazgos negativos
-documentados con datos, la trampa del \emph{shaping} potencial y la divergencia de
-$Q$ con metas aleatorias.
+Frente a la literatura revisada, este estudio realiza tres contribuciones específicas: a) la formulación de un entorno de navegación sobre topografía real con observación local y origen aleatorio que inhabilita las soluciones tabulares; b) una comparación sistemática de paradigmas basados en valor y política frente a la frontera óptima de Dijkstra; y c) la documentación empírica de dos casos de estudio con resultados de aprendizaje negativos: la inestabilidad por *shaping* potencial y la divergencia de la función de valor con objetivos variables.
