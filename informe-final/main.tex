@@ -49,21 +49,7 @@ E-mail: affloresb@uni.pe, vlazop@uni.pe, ruben.lopez.m@uni.pe, juan.quispe.h@uni
 
 % --------------------------------------------------------------------------
 \begin{abstract}
-Un agente aprende a cruzar un terreno real (las faldas del volcán Misti, en
-Arequipa) gastando el menor esfuerzo por pendiente. En el trabajo parcial usamos
-Q-learning tabular con una meta fija. Aquí subimos la dificultad y aplicamos
-Aprendizaje por Refuerzo Profundo. El mapa va a resolución completa
-($108\times108$ celdas de 30~m), el agente solo ve un parche $9\times9$ de
-pendiente a su alrededor más un vector hacia la meta, y el punto de partida cambia
-en cada episodio. La función de valor la aproxima una red neuronal (Deep Q-Network,
-DQN). Comparamos dos familias de métodos, los basados en valor (DQN y Double DQN) y
-los basados en política (REINFORCE), y medimos contra el óptimo exacto de Dijkstra.
-El agente llega a la meta desde puntos de partida que nunca vio en entrenamiento,
-con una ruta cercana al óptimo, y sigue funcionando cuando el mundo se vuelve
-estocástico. Reportamos también dos problemas de diseño y cómo los resolvimos: el
-\emph{reward shaping} potencial de libro creaba una trampa que impedía aprender, y
-lo cambiamos por \emph{shaping} de progreso; y con metas totalmente aleatorias los
-valores $Q$ divergen, lo que explica por qué elegimos meta fija.
+En el presente artículo se aborda el problema del aprendizaje de navegación autónoma de costo mínimo sobre topografía real mediante Aprendizaje por Refuerzo Profundo (DRL). A diferencia del enfoque previo basado en Q-learning tabular con condiciones fijas, este trabajo incrementa la complejidad del entorno utilizando un modelo digital de elevación a resolución completa ($108\times108$ celdas de 30~m), donde el agente opera bajo observación parcial y estados iniciales aleatorios en cada episodio. Se aproxima la función de valor de la acción mediante una red Deep Q-Network (DQN) y se realiza una evaluación sistemática comparando métodos basados en valor (DQN y Double DQN) y basados en política (REINFORCE), empleando el algoritmo de Dijkstra como línea base de optimalidad. Los resultados experimentales demuestran la viabilidad de la propuesta: el agente entrenado generaliza con éxito hacia posiciones iniciales no observadas, describiendo trayectorias cercanas al óptimo y mostrando robustez ante transiciones estocásticas. Adicionalmente, se caracterizan y resuelven dos problemas críticos de diseño: el colapso del aprendizaje inducido por el rediseño de recompensa (*reward shaping*) potencial bajo descuento temporal, solucionado mediante un esquema de progreso, y la divergencia asintótica de los valores $Q$ en configuraciones con objetivos aleatorios, fundamentando la adopción de un esquema de meta fija.
 \end{abstract}
 
 \begin{IEEEkeywords}
