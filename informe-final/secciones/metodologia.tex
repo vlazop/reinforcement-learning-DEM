@@ -13,6 +13,14 @@ Fig.~\ref{fig:terreno} muestra la elevación y la pendiente. El MDP es:
         castigo si choca contra un obstáculo, y un premio al llegar a la meta.
 \end{itemize}
 
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{figuras/01_terreno.png}
+\caption{Terreno real (faldas del Misti): elevación (izq.) y pendiente (der.),
+malla $108\times108$ de 30~m.}
+\label{fig:terreno}
+\end{figure}
+
 \subsection{Observación local}
 El agente no ve el mapa completo. Ve un parche de $9\times9$ celdas de pendiente
 centrado en él (81 valores) más el vector $(\Delta \text{fila}, \Delta
@@ -20,6 +28,14 @@ centrado en él (81 valores) más el vector $(\Delta \text{fila}, \Delta
 tamaño no depende del mapa. Y como terrenos parecidos dan observaciones parecidas,
 la red puede generalizar. Una tabla no puede: necesitaría una entrada por cada par
 (posición, meta), del orden de $10^8$ valores.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{figuras/02_observacion.png}
+\caption{Observación local: el mapa completo con la ventana del agente (izq.) y el
+parche $9\times9$ que recibe la red (der.), más el vector a la meta.}
+\label{fig:obs}
+\end{figure}
 
 \subsection{Meta fija con inicio aleatorio}
 La meta es siempre la misma celda; el inicio cambia en cada episodio. Con una sola

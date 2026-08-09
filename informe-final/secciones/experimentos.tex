@@ -13,6 +13,22 @@ Fig.~\ref{fig:rutas} pone cuatro de sus rutas al lado de las de Dijkstra. Sobre 
 20 inicios, la brecha media de costo es de solo \textbf{3,3\,\%}, aunque el agente
 nunca vio el mapa completo, solo parches locales.
 
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{figuras/03_curva_dqn.png}
+\caption{Curva de aprendizaje de DQN con meta fija: recompensa, tasa de éxito de
+entrenamiento, pasos y test sobre inicios no vistos.}
+\label{fig:curva}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{figuras/04_rutas_dijkstra.png}
+\caption{Rutas aprendidas por DQN (rojo) frente al óptimo exacto de Dijkstra
+(blanco), para cuatro pares inicio--meta de test.}
+\label{fig:rutas}
+\end{figure}
+
 \subsection{Ablaciones}
 Repetimos el estudio de ablación de Liu \& Zou \cite{liu2018} en nuestro terreno:
 apagamos cada mecanismo de DQN y medimos qué pasa (Tabla~\ref{tab:ablacion},
@@ -21,7 +37,15 @@ agente no aprende nada (0\,\%), y sin la Reproducción de Experiencias tampoco
 (0\,\%). Los dos componentes son necesarios. Double DQN queda a la par del DQN
 completo (100\,\%).
 
-\begin{table}[t]
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{figuras/05_ablaciones.png}
+\caption{Ablaciones: DQN completo, sin \emph{replay}, sin red objetivo
+($\theta^-$) y Double DQN.}
+\label{fig:ablacion}
+\end{figure}
+
+\begin{table}[ht]
 \caption{Ablaciones: tasa de éxito en el test}
 \label{tab:ablacion}
 \centering
@@ -45,6 +69,13 @@ compara terreno determinista y estocástico. Los dos llegan al 100\,\% de éxito
 estocástico solo necesita unos pasos más (102 frente a 96). La política aguanta el
 azar, algo que Dijkstra no modela porque supone que el mundo es perfecto.
 
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{figuras/06_estocastico.png}
+\caption{DQN en terreno determinista vs estocástico (resbalón $0.25$).}
+\label{fig:estoc}
+\end{figure}
+
 \subsection{Valor vs política: DQN y REINFORCE}
 La Fig.~\ref{fig:reinforce} compara DQN (basado en valor) con REINFORCE (basado en
 política) en el mismo terreno. Los dos llegan alto: DQN 100\,\% y REINFORCE 95\,\%.
@@ -53,6 +84,13 @@ de Experiencias y la red objetivo. REINFORCE es más simple pero tiene mucha má
 varianza: la recompensa por episodio salta de un valor a otro. Es el comportamiento
 típico de cada familia.
 
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{figuras/07_dqn_vs_reinforce.png}
+\caption{Valor vs política: DQN y REINFORCE en el mismo terreno.}
+\label{fig:reinforce}
+\end{figure}
+
 \subsection{Divergencia con meta aleatoria}
 La Fig.~\ref{fig:diverge} muestra qué pasa si la meta también es aleatoria (problema
 \emph{goal-conditioned}). La magnitud media de los valores $Q$ se mantiene baja hasta
@@ -60,3 +98,11 @@ cerca del episodio 1000 y luego \textbf{explota}: pasa de $\sim 1$ a más de $24
 Mientras tanto la tasa de éxito nunca sube de 10\,\%. El agente no aprende una
 política que se sostenga, y los valores divergen por la sobreestimación del operador
 $\max$. Esta es la razón por la que elegimos meta fija.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{figuras/08_divergencia.png}
+\caption{Con meta aleatoria, la magnitud media de $Q$ (izq.) crece sin control
+(divergencia) y el éxito (der.) no se sostiene.}
+\label{fig:diverge}
+\end{figure}
