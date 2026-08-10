@@ -52,6 +52,7 @@ E-mail: affloresb@uni.pe, vlazop@uni.pe, ruben.lopez.m@uni.pe, juan.quispe.h@uni
 En el presente artículo se aborda el problema del aprendizaje de navegación autónoma de costo mínimo sobre topografía real mediante Aprendizaje por Refuerzo Profundo (DRL). A diferencia del enfoque previo basado en Q-learning tabular con condiciones fijas, este trabajo incrementa la complejidad del entorno utilizando un modelo digital de elevación a resolución completa ($108\times108$ celdas de 30~m), donde el agente opera bajo observación parcial y estados iniciales aleatorios en cada episodio. Se aproxima la función de valor de la acción mediante una red Deep Q-Network (DQN) y se realiza una evaluación sistemática comparando métodos basados en valor (DQN y Double DQN) y basados en política (REINFORCE), empleando el algoritmo de Dijkstra como línea base de optimalidad. Los resultados experimentales demuestran la viabilidad de la propuesta: el agente entrenado generaliza con éxito hacia posiciones iniciales no observadas, describiendo trayectorias cercanas al óptimo y mostrando robustez ante transiciones estocásticas. Adicionalmente, se caracterizan y resuelven dos problemas críticos de diseño: el colapso del aprendizaje inducido por el rediseño de recompensa (*reward shaping*) potencial bajo descuento temporal, solucionado mediante un esquema de progreso, y la divergencia asintótica de los valores $Q$ en configuraciones con objetivos aleatorios, fundamentando la adopción de un esquema de meta fija.
 \end{abstract}
 
+\renewcommand\IEEEkeywordsname{Palabras claves}
 \begin{IEEEkeywords}
 Aprendizaje por Refuerzo Profundo, Deep Q-Network, REINFORCE, navegación,
 reward shaping, modelo digital de elevación.
@@ -66,6 +67,12 @@ reward shaping, modelo digital de elevación.
 \input{secciones/experimentos}
 \input{secciones/discusion}
 \input{secciones/conclusiones}
+\input{secciones/trabajo-futuro}
+\appendices
+\section{Acceso al Repositorio de Código}
+El código fuente completo de este proyecto, incluyendo los algoritmos implementados, los entornos de simulación y las rutinas de visualización, se encuentra disponible de forma pública en el siguiente repositorio de GitHub:
+
+\url{https://github.com/uni-maestria/reinforcement-learning-DEM}
 
 % --------------------------------------------------------------------------
 \begin{thebibliography}{11}
