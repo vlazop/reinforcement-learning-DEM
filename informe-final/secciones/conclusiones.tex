@@ -1,10 +1,12 @@
-\section{Conclusiones y trabajo futuro}
+\section{Conclusiones}
 \label{sec:conc}
-Construimos un agente de Aprendizaje por Refuerzo Profundo que navega terreno real
-con observación local e inicio aleatorio, y aproxima la función de valor con una red
-neuronal. El agente llega a la meta desde inicios que nunca vio, con una ruta
-cercana al óptimo de Dijkstra, y aguanta las transiciones estocásticas. Comparamos
-las familias de valor y de política, y reportamos dos problemas de diseño con datos
-que los respaldan. Para el futuro proponemos tres líneas: políticas condicionadas a
-la meta (\emph{goal-conditioned}) con Hindsight Experience Replay o replay
-priorizado; mapas más grandes, como el volcán completo; y métodos actor-critic.
+
+En el presente estudio, se ha desarrollado e implementado de forma exitosa un marco experimental para la navegación autónoma de costo mínimo sobre topografía real, utilizando Aprendizaje por Refuerzo Profundo bajo condiciones de observación parcial y estados iniciales variables. A partir de los resultados cuantitativos y análisis empíricos presentados, se formulan las siguientes conclusiones:
+
+\begin{itemize}
+  \item \textbf{Generalización y Optimalidad:} El agente entrenado demostró una notable capacidad de generalización al alcanzar la meta desde configuraciones de inicio no observadas durante el entrenamiento, registrando una tasa de éxito del 100\,\%. Las trayectorias generadas exhibieron una desviación media de costo de solo el 3,3\,\% en comparación con la frontera óptima global calculada por el algoritmo de Dijkstra.
+  \item \textbf{Robustez ante Incertidumbre:} Bajo transiciones estocásticas que modelan condiciones de deslizamiento físico, la política aprendida exhibió resiliencia al mantener el 100\,\% de éxito, requiriendo un incremento de solo 6 pasos en promedio respecto a la simulación determinista (102 frente a 96 pasos). Esto evidencia la adaptabilidad del DRL frente a la rigidez de la planificación clásica.
+  \item \textbf{Indispensabilidad de Mecanismos en DQN:} El análisis de ablación demostró que tanto la memoria de reproducción de experiencias como la red objetivo congelada ($\theta^-$) son mecanismos críticos para la estabilidad numérica del aprendizaje. La desactivación individual de cualquiera de ellos provocó el colapso del entrenamiento, resultando en una tasa de éxito del 0\,\%.
+  \item \textbf{Sensibilidad al Diseño de Recompensas:} Se caracterizó empíricamente que el rediseño potencial tradicional ($F = \gamma \Phi(s') - \Phi(s)$) induce comportamientos espurios (bucles infinitos locales) en trayectorias extensas cuando se opera con factores de descuento $\gamma < 1$. Por el contrario, el esquema de recompensa por progreso propuesto resolvió esta inestabilidad al eliminar los residuos acumulados en ciclos cerrados.
+  \item \textbf{Inestabilidad ante Objetivos Variables:} Se demostró que la formulación estándar de DQN es propensa a la divergencia asintótica de los valores $Q$ (escalando de $\sim 1$ a más de $2400$) ante metas aleatorias, debido a la realimentación del sesgo del operador $\max$. Esto justifica de manera metodológica la adopción de una política parametrizada para un objetivo estacionario en el presente trabajo.
+\end{itemize}

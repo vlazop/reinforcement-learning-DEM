@@ -1,0 +1,4 @@
+\section{Trabajo futuro}
+\label{sec:trab-fut}
+
+Como líneas de trabajo futuro, se proponen: a) la extensión del algoritmo a políticas condicionadas al objetivo (*goal-conditioned*) incorporando técnicas de reetiquetado de experiencias (Hindsight Experience Replay, HER) o muestreo priorizado (PER) para estabilizar la función de valor; b) la escalabilidad del modelo a entornos geográficos de mayor dimensión; y c) la evaluación de arquitecturas de gradiente de política avanzadas de tipo actor-crítico.

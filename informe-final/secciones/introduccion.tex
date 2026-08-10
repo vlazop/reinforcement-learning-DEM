@@ -1,42 +1,15 @@
 \section{Introducción}
-Cruzar un terreno gastando el menor esfuerzo es un problema viejo. Si conoces el
-mapa completo, lo resuelves exacto con Dijkstra. Pero un agente autónomo casi nunca
-tiene el mapa entero: ve su alrededor y decide con información parcial. El
-Aprendizaje por Refuerzo (Reinforcement Learning, RL) sirve justo para ese caso:
-aprende una política por prueba y error.
+La navegación y planificación de rutas de costo mínimo sobre superficies topográficas reales representa un problema clásico en optimización. Ante la disponibilidad de mapas completos y entornos deterministas, algoritmos como el de Dijkstra garantizan la obtención del camino óptimo global. No obstante, un agente autónomo real opera bajo observación parcial y debe tomar decisiones locales con información incompleta. En tales escenarios, el Aprendizaje por Refuerzo (Reinforcement Learning, RL) provee un marco formal para el aprendizaje de políticas de navegación mediante interacción directa con el entorno.
 
-En el trabajo parcial modelamos el terreno como un Proceso de Decisión de Markov
-(Markov Decision Process, MDP) y lo resolvimos con Q-learning tabular. La malla era
-reducida ($54\times54$), y el inicio y la meta eran fijos. Ese enfoque guarda una
-tabla de valores y no sirve para situaciones nuevas: memoriza, no generaliza.
+En la fase previa del proyecto, el terreno fue modelado como un Proceso de Decisión de Markov (Markov Decision Process, MDP) y resuelto mediante Q-learning tabular en una cuadrícula reducida de $54\times54$ celdas con origen y destino fijos. Dicho enfoque almacena una matriz de valores y presenta severas limitaciones de escalabilidad y generalización, restringiendo la adaptabilidad del agente a condiciones o puntos de inicio no observados durante el entrenamiento.
 
-En este trabajo subimos la dificultad y usamos Aprendizaje por Refuerzo Profundo
-(Deep Reinforcement Learning, DRL). Aportamos tres cosas:
+En el presente estudio se incrementa la complejidad del escenario y se aplica Aprendizaje por Refuerzo Profundo (Deep Reinforcement Learning, DRL). Las principales contribuciones de este trabajo son:
 \begin{itemize}
-  \item Un entorno más difícil: resolución completa ($108\times108$), observación
-        local (un parche $9\times9$ más el vector a la meta) e inicio aleatorio.
-        Esto obliga al agente a generalizar y justifica usar una red neuronal en
-        lugar de una tabla.
-  \item Una comparación de dos familias de RL en el mismo terreno: basada en valor
-        (DQN, Double DQN) y basada en política (REINFORCE), más la línea base
-        exacta de Dijkstra.
-  \item Dos problemas de diseño que encontramos y resolvimos, con datos que lo
-        respaldan: la trampa del \emph{shaping} potencial y la divergencia de $Q$
-        con metas aleatorias.
+  \item Un entorno de mayor complejidad caracterizado por una resolución topográfica completa ($108\times108$ celdas), observación parcial (un parche local de $9\times9$ celdas y el vector relativo hacia la meta) e inicio aleatorio, lo cual demanda capacidades de generalización en el agente y sustenta la transición hacia aproximadores de función neuronales.
+  \item Un análisis comparativo entre métodos basados en valor (Deep Q-Network y Double DQN) y métodos basados en política (REINFORCE) sobre el mismo terreno físico, empleando el algoritmo de Dijkstra como línea base de optimalidad.
+  \item La caracterización experimental y resolución de dos problemáticas de diseño: la trampa de incentivos inducida por el rediseño de recompensa (*reward shaping*) potencial bajo descuento temporal y la inestabilidad/divergencia de los valores $Q$ en entornos con metas aleatorias.
 \end{itemize}
 
-En cuanto al método, modelamos el terreno como un MDP sobre un modelo digital de
-elevación real, con un costo de paso que crece con la pendiente. El agente observa
-un parche local y un vector a la meta, y aproxima $Q(s,a)$ con un perceptrón de dos
-capas ocultas entrenado por DQN, con reproducción de experiencias y red objetivo.
-Entrenamos con un \emph{curriculum} que aleja poco a poco el punto de partida, y
-evaluamos la política greedy sobre 20 inicios que el agente nunca vio, midiendo tasa
-de éxito y brecha de costo contra la ruta óptima de Dijkstra.
+En cuanto a la metodología, el terreno real se modela como un MDP a partir de un Modelo Digital de Elevación (Digital Elevation Model, DEM), donde el costo de tránsito es proporcional a la pendiente local. El agente recibe una observación en forma de parche local y el vector relativo al objetivo, aproximando la función $Q(s,a)$ mediante un perceptrón multicapa optimizado con DQN, memoria de reproducción de experiencias y red objetivo. El entrenamiento se realiza bajo un esquema de aprendizaje curricular (*curriculum learning*) incrementando progresivamente la distancia del estado inicial. La evaluación de la política codiciosa (*greedy*) se lleva a cabo sobre 20 configuraciones de inicio no observadas durante el entrenamiento, cuantificando la tasa de éxito y la brecha de costo en comparación con la ruta óptima de Dijkstra.
 
-El resto del documento se organiza así. La Sec.~\ref{sec:related} revisa los
-trabajos previos y ubica nuestro aporte. La Sec.~\ref{sec:teoria} resume la teoría
-de los algoritmos que usamos. La Sec.~\ref{sec:metodo} define el MDP, la observación
-y el diseño de la recompensa. La Sec.~\ref{sec:impl} detalla la implementación, el
-pseudocódigo y los hiperparámetros. La Sec.~\ref{sec:exp} presenta los resultados y
-la Sec.~\ref{sec:disc} los discute. La Sec.~\ref{sec:conc} cierra con las
-conclusiones y el trabajo futuro.
+El resto del documento se estructura de la siguiente manera. La Sec.~\ref{sec:related} revisa la literatura científica previa y contextualiza la contribución de este trabajo. La Sec.~\ref{sec:teoria} describe el fundamento matemático de los algoritmos seleccionados. La Sec.~\ref{sec:metodo} formaliza el MDP, el espacio de observaciones y la estructura de la recompensa. La Sec.~\ref{sec:impl} detalla los aspectos de implementación, el pseudocódigo y los hiperparámetros. La Sec.~\ref{sec:exp} presenta los resultados cuantitativos y la Sec.~\ref{sec:disc} discute sus implicancias. Finalmente, la Sec.~\ref{sec:conc} presenta las conclusiones y en la Sec.~\ref{sec:trab-fut} líneas de trabajo futuro.
