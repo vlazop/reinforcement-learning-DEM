@@ -19,6 +19,9 @@
 \usepackage{url}
 \usepackage{hyperref}
 
+\usepackage{orcidlink}
+
+
 % babel-spanish nombra las tablas "Cuadro" y el flotante de algoritmo en inglés.
 % El \addto es necesario: babel fija los nombres al empezar el documento.
 \addto\captionsspanish{\renewcommand{\tablename}{Tabla}}
@@ -36,13 +39,32 @@ mediante Aprendizaje por Refuerzo Profundo}
 % Arequipa, Perú}
 % }
 
-\author{\IEEEauthorblockN{Andres Flores\IEEEauthorrefmark{1};
-Victor Lazo\IEEEauthorrefmark{1};
-Rubén López\IEEEauthorrefmark{1};
-Juan Quispe\IEEEauthorrefmark{1}}
-\IEEEauthorblockA{\IEEEauthorrefmark{1}Escuela de Posgrado FIIS - UNI, Lima\\
-% \IEEEauthorblockA{\IEEEauthorrefmark{2}Departamento de estudios/ Institución/ Dirección 2\\
-E-mail: affloresb@uni.pe, vlazop@uni.pe, ruben.lopez.m@uni.pe, juan.quispe.h@uni.pe}}
+% \author{\IEEEauthorblockN{Andres Flores\IEEEauthorrefmark{1};
+% Victor Lazo\IEEEauthorrefmark{1};
+% Rubén López\IEEEauthorrefmark{1};
+% Juan Quispe\IEEEauthorrefmark{1}}
+% \IEEEauthorblockA{\IEEEauthorrefmark{1}Escuela de Posgrado FIIS - UNI, Lima\\
+% % \IEEEauthorblockA{\IEEEauthorrefmark{2}Departamento de estudios/ Institución/ Dirección 2\\
+% E-mail: affloresb@uni.pe, vlazop@uni.pe, ruben.lopez.m@uni.pe, juan.quispe.h@uni.pe}}
+
+\author{
+    \IEEEauthorblockN{
+        Andres Flores \protect\orcidlink{0009-0008-6960-0852},
+        Victor Lazo \protect\orcidlink{0000-0002-3293-6415},
+        Rubén López \protect\orcidlink{0009-0004-5446-086X},
+        Juan Quispe \protect\orcidlink{0000-0003-3957-5728}\thanks{Correos electrónicos:\protect\\
+        (A. Flores) \protect\href{mailto:affloresb@uni.pe}{\protect\texttt{affloresb@uni.pe}}\protect\\
+        (V. Lazo) \protect\href{mailto:vlazop@uni.pe}{\protect\texttt{vlazop@uni.pe}}\protect\\
+        (R. Lopez) \protect\href{mailto:ruben.lopez.m@uni.pe}{\protect\texttt{ruben.lopez.m@uni.pe}}\protect\\
+        (J. Quispe) \protect\href{mailto:juan.quispe.h@uni.pe}{\protect\texttt{juan.quispe.h@uni.pe}}}
+    }
+    \IEEEauthorblockA{
+        Unidad de Posgrado - Maestría en Inteligencia Artificial\\
+        Facultad de Ingeniería Industrial y de Sistemas\\
+        Universidad Nacional de Ingeniería\\
+        Lima, Perú
+    }
+}
 
 
 \maketitle
@@ -58,6 +80,17 @@ Aprendizaje por Refuerzo Profundo, Deep Q-Network, REINFORCE, navegación,
 reward shaping, modelo digital de elevación.
 \end{IEEEkeywords}
 
+\renewcommand\abstractname{Abstract}
+\begin{abstract}
+This paper addresses the problem of learning minimum-cost autonomous navigation over real topography using Deep Reinforcement Learning (DRL). Unlike the previous approach based on tabular Q-learning with fixed conditions, this work increases environment complexity by using a full-resolution digital elevation model ($108\times108$ cells of 30~m), where the agent operates under partial observation and randomized initial states in each episode. The action-value function is approximated using a Deep Q-Network (DQN), and a systematic evaluation is conducted to compare value-based methods (DQN and Double DQN) with policy-based methods (REINFORCE), using Dijkstra's algorithm as the optimality baseline. Experimental results demonstrate the feasibility of the proposed approach: the trained agent successfully generalizes to unobserved starting positions, generating near-optimal trajectories and exhibiting robustness to stochastic transitions. Additionally, we characterize and resolve two critical design issues: learning collapse induced by potential-based reward shaping under temporal discounting, solved through a progress-based scheme, and the asymptotic divergence of $Q$-values in configurations with randomized targets, justifying the adoption of a fixed-target scheme.
+\end{abstract}
+
+\renewcommand\IEEEkeywordsname{Keywords}
+\begin{IEEEkeywords}
+Deep Reinforcement Learning, Deep Q-Network, REINFORCE, navigation,
+reward shaping, digital elevation model.
+\end{IEEEkeywords}
+
 % --------------------------------------------------------------------------
 \input{secciones/introduccion}
 \input{secciones/trabajos-relacionados}
@@ -68,7 +101,8 @@ reward shaping, modelo digital de elevación.
 \input{secciones/discusion}
 \input{secciones/conclusiones}
 \input{secciones/trabajo-futuro}
-\appendices
+
+\appendix
 \section{Acceso al Repositorio de Código}
 El código fuente completo de este proyecto, incluyendo los algoritmos implementados, los entornos de simulación y las rutinas de visualización, se encuentra disponible de forma pública en el siguiente repositorio de GitHub:
 
